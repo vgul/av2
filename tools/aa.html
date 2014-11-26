@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jQuery.map demo</title>
+  <style>
+  div {
+    color: blue;
+  }
+  p {
+    color: green;
+    margin: 0;
+  }
+  span {
+    color: red;
+  }
+  </style>
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+ 
+<div></div>
+<p></p>
+<span></span>
+ 
+<script>
+var arr = [ "a", "b", "c", "d", "e" ];
+$( "div" ).text( arr.join( ", " ) );
+
+arr = jQuery.map( arr, function( n, i ) {
+  return ( '<li>' + n.toUpperCase() + i + '</li>' );
+});
+
+$( "p" ).html( arr.join( ", " ) );
+ 
+arr = jQuery.map( arr, function( a ) {
+  return a + a;
+});
+$( "span" ).text( arr.join( ", " ) );
+</script>
+ 
+</body>
+</html>
+

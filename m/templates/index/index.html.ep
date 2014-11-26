@@ -1,0 +1,446 @@
+
+<!DOCTYPE HTML>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <!--
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Недвижимость из 1х рук г.Киев</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="<%=$self->req->url->base%>/css/bootstrap3.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!-- 
+    <link href="jumbotron.css" rel="stylesheet">
+    -->
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- *** AS EXAMPLE
+    <link rel="stylesheet" href="<%=$self->req->url->base%>/css/bootstrap3.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="<%=$self->req->url->base%>/css/jquery-ui-1.10.3.custom.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="<%=$self->req->url->base%>/css/ui.jqgrid.css" />
+    -->
+
+    <style>
+        bodyZ {
+          padding-top: 50px;
+          padding-bottom: 20px;
+        }
+/*
+    .row > div {
+            background-color: #dedef8;
+            box-shadow: inset 1px -1px 1px #444, inset -1px 1px 1px #444;
+        }
+*/
+/*
+    .table td {
+        /* border: black solid 1px; *
+        margin: 0px;
+        padding: 0px;
+        line-height: 0px;
+    }
+*/
+    .modal.modal-wide .modal-dialog {
+      width: 90%;
+    }
+
+    .modal-header.modal-header-whithout-line {
+        border-bottom: none;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+    }
+
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+    var regions_array = {
+        kv_kup: [
+            "Квартиры куплю по Киеву"
+        ]
+       ,kv_pro: [ 
+            "1 комн правый берег (Печерский;Шевченковский)",
+            "1 комн правый берег (Печерский;Шевченковский)",
+            "1 комн правый берег (Подольский;Соломенский)",
+            "1 комн правый берег (Голосеевский;Святошинский)",
+            "1 комн правый берег (Оболонский)",
+            "1 комн левый берег (Днепровский)",
+            "1 комн левый берег (Дарницкий;Деснянский)",
+            "2 комн правый берег (Печерский;Шевченковский)",
+            "2 комн правый берег (Подольский;Соломенский)",
+            "2 комн правый берег (Голосеевский;Святошинский)",
+            "2 комн правый берег (Оболонский)",
+            "2 комн левый берег (Днепровский)",
+            "2 комн левый берег (Дарницкий;Деснянский)",
+            "3 комн правый берег",
+            "3 комн левый берег",
+            "4;многокомнатные",
+            "Прочие варианты",
+            "Обмен",
+            "Комнаты. город;обл",
+            "1;2 комн по области",
+            "3;многокомн. по области"
+        ]
+       ,kv_sda: [ 
+            "1 комн правый берег; долгосрочно",
+            "1 комн левый берег; долгосрочно",
+            "2 комн правый берег; долгосрочно",
+            "2 комн левый берег; долгосрочно",
+            "3 комн правый берег; долгосрочно",
+            "3 комн левый берег; долгосрочно",
+            "4;многокомн; долгосрочно",
+            "Комнаты; прочие варианты; долгосрочно"
+        ]
+       ,kv_sni: [ 
+            "Квартиру",
+            "Комнату",
+            "Прочие варианты"
+        ]
+
+       ,do_kup: [ 'str7', 'str8' ]
+    };
+
+
+
+    var actions_array = [
+        "kv_kup", "kv_pro", "kv_sda", "kv_sni",
+        "do_kup", "do_pro", "do_sda", "do_sni",
+        "uc_kup", "uc_pro", "uc_sda", "uc_sni",
+        "of_kup", "of_pro", "of_sda", "of_sni",
+        "ko_kup", "ko_pro", "ko_sda", "ko_sni"
+    ];
+
+    $(function () {
+        $.each( actions_array, function(k,mode_id) { show_regions(k,mode_id) });
+
+        $("a[data-group='history1']").click(function(){
+            var ad_id = $(this).attr('href');
+            ad_id = ad_id.replace('#','');
+            console.log( 'show_history; ' + ad_id  );
+            // $('#myModal').modal('backdrop');
+
+            $.ajax({
+                type: "GET",
+                dataType: "text",
+                url: "<%== url_for "history" %>?ad_id=" + ad_id,
+            }).done(function( response ) {
+                // console.log('ajax: ' + response );
+                $('#history_show').html( response );
+            });
+        });
+
+        $("a[data-group='contacts']").click(function(){
+            var ad_id = $(this).attr('href');
+            ad_id = ad_id.replace('#','');
+            console.log( 'show_contacts; ' + ad_id  );
+            // $('#myModal').modal('backdrop');
+
+            $.ajax({
+                type: "GET",
+                dataType: "text",
+                url: "<%== url_for "history" %>?ad_id=" + ad_id,
+            }).done(function( response ) {
+                // console.log('ajax: ' + response );
+                //$('#history_show').html( response );
+            });
+        })
+    });
+
+
+    function show_regions(k,mode_id) {
+        // console.log(k+' '+mode_id);
+        var regions0 = regions_array[mode_id];
+
+        if (typeof regions0 !== 'undefined' && regions0.length > 0) {
+            var prepared0 = jQuery.map( regions0, function(v,i) {
+                return( '<li>' + v + '</li>' );  
+            });
+            var str0 = "<ul>" + prepared0.join('') + "</ul>";
+            // console.log( 'Here: ' + str0 );
+            jQuery( "#" + mode_id ).click( function() {
+                jQuery("#regions").html(str0);
+            });
+        } else {
+            // console.log( 'Abnormal' );
+            jQuery( "#" + mode_id ).click( function() {
+                jQuery("#regions").html( 'fff' );
+            });
+        } 
+
+    };
+    </script>
+
+<head>
+<body>
+
+<!-- Modal -->
+<div class="modal modal-wide fade" id="adhistory" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-header-whithout-line ">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel1">История объявления</h4>
+      </div>
+
+      <div id='history_show' class="modal-body">
+        <!-- advert history here -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- modal end -->
+
+<!-- Modal -->
+<div class="modal fade" id="show_contacts" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel2">Показ контактов</h4>
+      </div>
+
+      <div id='contact_show' class="modal-body">
+      Для просмотра контактных данных необходимо авторизоваться и, в случае необходимости, сделать оплату ( 10 грн за доступ ко <u>Всем</u> контактам во <u>Всех</u> разделах )
+<ul>
+<li><a href="https://accounts.google.com/o/oauth2/auth?redirect_uri=http://k116.asuscomm.com:3000/oauth2callback&response_type=code&client_id=964397194725-pkanvp4cqf9ga2l6r6spcrqvenh7dpnl.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile" title="Войти через Google">Войти через Google</a></li>
+
+<li><a href="https://accounts.google.com/o/oauth2/auth?redirect_uri=http://k116.asuscomm.com:3000/oauth2callback&response_type=code&client_id=964397194725-pkanvp4cqf9ga2l6r6spcrqvenh7dpnl.apps.googleusercontent.com&scope=https://www.google.com/m8/feeds/" title="Войти через Google2">Войти через Google2</a></li>
+
+<li><a href="https://oauth.vk.com/authorize?client_id=4650922&scope=&redirect_uri=http://k116.asuscomm.com:3000/vklogin&response_type=code&display=popup" title="Войти через ВКонтакте">Войти через ВКонтакте</a></li>
+</ul>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- modal end -->
+
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Zvonar-Киев</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+      </ul>
+<!--
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+-->
+      <ul class="nav navbar-nav navbar-right">
+
+        <!--
+        <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+        <li><a href="#">Link</a></li>
+        -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Зайти используя <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Action</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+          </ul>
+        </li>
+
+        <!--
+        <li><a href="#">Link</a></li>
+        -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">IgorSlavin@gmail.com <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Баланс</a></li>
+            <li><a href="#">Email для рассылки</a></li>
+            <li><a href="#">Смена пароля</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Выйти</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+
+<div class="container">
+<div class="row row-centered">
+
+<div class="col-md-2 col-md-offset-1">
+    <ul>
+    <li><a href="#" id="kv_kup">Квартиры куплю</a></li>
+    <li><a href="#" id="kv_pro">Квартиры продам</a></li>
+    <li><a href="#" id="kv_sda">Квартиры сдам</a></li>
+    <li><a href="#" id="kv_sni">Квартиры сниму</a></li>
+    </ul>
+</div>
+
+<div class="col-md-2">
+    <ul>
+    <li><a href="#" id="do_kup">Дома куплю</a></li>
+    <li><a href="#" id="do_pro">Дома продам</a></li>
+    <li><a href="#" id="do_sda">Дома сдам</a></li>
+    <li><a href="#" id="do_sni">Дома сниму</a></li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li><a href="#" id="uc_kup">Участки куплю</a></li>
+    <li><a href="#" id="uc_pro">Участки продам</a></li>
+    <li><a href="#" id="uc_sda">Участки сдам</a></li>
+    <li><a href="#" id="uc_sni">Участки сниму</a></li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li><a href="#" id="of_kup">Офисы куплю</a></li>
+    <li><a href="#" id="of_pro">Офисы продам</a></li>
+    <li><a href="#" id="of_sda">Офисы сдам</a></li>
+    <li><a href="#" id="of_sni">Офисы сниму</a></li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li><a href="#" id="ko_kup">Коммерч. куплю</a></li>
+    <li><a href="#" id="ko_pro">Коммерч. продам</a></li>
+    <li><a href="#" id="ko_sda">Коммерч. сдам</a></li>
+    <li><a href="#" id="ko_sni">Коммерч. сниму</a></li>
+    </ul>
+</div>
+</div><!-- second variant -->
+
+<div class="row row-centered">
+<div class="col-md-10 col-md-offset-2">
+<b>Районы/Варианты</b>
+</div>
+</div>
+
+<div class="row row-centered">
+<div class="col-md-6 col-md-offset-3" id='regions' 
+                                        style='border: white solid 1px;'>
+</div>
+</div>
+
+<div class="row row-centered">
+<div class="col-md-10 col-md-offset-2">
+<b>Объявления (тексты)</b>
+</div>
+</div>
+
+
+
+<div class="row row-centered">
+<div class="col-md-12 ">
+<table class="table table-condensed">
+<tr>
+    <td>20ноя</td>
+    <td>Или двухкомн.кв. комнату, левый, правый берег. Только у собственника. Примем во внимание Ваши пожелания и требования. Срочно.</td>
+    <td>(044)5582319</td>
+    <td><a href="#27" data-group="history1" data-toggle="modal" data-target="#adhistory">
+                История</a></td>
+</tr>
+
+<tr> <td>20ноя</td>
+    <td>Автовокзал, Академгородок, Беличи, Борщаговка, Виноградарь, Лесной массив, Лукьяновка, Нивки, Оболонь, Отрадный, Куреневка, Подол, Печерск, Русановка, Сырец, Троещина, Харьковский массив, Чоколовка, у хозяина. Рассмотрю все предложения.</td>
+    <td><a href="#28" data-group="contacts" data-toggle="modal" data-target="#show_contacts">Показать</a>
+    </td>
+    <td><a href="#28" data-group="history1" data-toggle="modal" data-target="#adhistory">История</a></td>
+</tr>
+
+<tr> 
+    <td>20ноя</td>
+    <td>Русановка, Энтузиастов ул., 37, 3/9-эт. дома, 42/28/7 кв.м, комнаты смежные, с/у разд., не угловая, развитая инфраструктура, супермаркет, школа, гимназия, детсад, ст.м. "Левобережная", 53000у.е. без комиссии для покупателя!.</td>
+    <td>(093)3547574</td>
+    <td><a href="#29" data-group="history1" data-toggle="modal" data-target="#adhistory">История</a></td>
+
+<tr>
+
+</table>
+
+</div>
+</div>
+
+</div> <!-- container-fluid -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="<%=$self->req->url->base%>/js/bootstrap3.min.js"></script>
+    
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug 
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+    -->
+
+</body>
+<html>
+<!--
+    var content_info = [
+        { c: "Квартиры Куплю", i: "kv_kup" }
+       ,{ c: "Квартиры Продам",i: "kv_pro" }
+       ,{ c: "Квартиры Сдам",  i: "kv_sda" }
+       ,{ c: "Квартиры Сниму", i: "kv_sni" }
+       ,{ delimiter: 1 }
+       ,{ c: "Дома Куплю",     i: "do_kup" }
+       ,{ c: "Дома Продам",    i: "do_pro" }
+       ,{ c: "Дома Сдам",      i: "do_sda" }
+       ,{ c: "Дома Сниму",     i: "do_sni" }
+       ,{ delimiter: 1 }
+       ,{ c: "Участки Куплю",  i: "uc_kup" }
+       ,{ c: "Участки Продам", i: "uc_pro" }
+       ,{ c: "Участки Сдам",   i: "uc_sda" }
+       ,{ c: "Участки Сниму",  i: "uc_sni" }
+       ,{ delimiter: 1 }
+       ,{ c: "Офисы Куплю",    i: "of_kup" }
+       ,{ c: "Офисы Продам",   i: "of_pro" }
+       ,{ c: "Офисы Сдам",     i: "of_sda" }
+       ,{ c: "Офисы Сниму",    i: "of_sni" }
+       ,{ delimiter: 1 }
+       ,{ c: "Коммерч. Куплю", i: "ko_kup" }
+       ,{ c: "Коммерч. Продам",i: "ko_pro" }
+       ,{ c: "Коммерч. Сдам",  i: "ko_sda" }
+       ,{ c: "Коммерч. Сниму", i: "ko_sni" }
+    ];
+-->
