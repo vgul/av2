@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+BEGIN
+{
+    unshift @INC, "$FindBin::Bin/../lib";
+    $ENV{MOJO_MAX_MESSAGE_SIZE} = 50 * 1024 * 1024; #2 * 1024 * 1024 * 1024 =  2 GB
+}
+
+# Start command line interface for application
+require Mojolicious::Commands;
+Mojolicious::Commands->start_app('Captcha');

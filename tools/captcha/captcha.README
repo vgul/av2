@@ -1,0 +1,21 @@
+
+package:
+    http://search.cpan.org/~zar/Mojolicious-Plugin-Captcha-0.01/lib/Mojolicious/Plugin/Captcha.pm
+ 
+source:
+    git clone https://bitbucket.org/zar/mojolicious-plugin-captcha.git    
+
+run daemon:
+    cd m
+    morbo -w . script/c
+
+client:
+    wget -O captcha.jpg  http://localhost:3000/captcha && gthumb captcha.jpg
+
+read: 
+    perldoc GD::SecurityImage
+
+install:
+    2014-11-27 20:01:32 sudo apt-get install libgd-graph-perl
+    2014-11-27 20:02:22 sudo /usr/local/bin/cpanm GD::SecurityImage
+
