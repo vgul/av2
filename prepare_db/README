@@ -1,0 +1,14 @@
+
+
+
+DATA MUST BE EQUIL!!!!
+
+    newskyline.org side:
+        createUser.sh
+
+    development side:
+        mysql_create_user_source_side.sh
+
+
+Yamles       - copied from av/src/out_reports/*yaml
+HumanHier.pl - copied from av/Packages    

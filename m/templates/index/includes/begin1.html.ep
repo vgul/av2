@@ -1,0 +1,52 @@
+
+
+<div class="row row-centered">
+
+<div class="col-md-2 col-md-offset-1">
+    <ul>
+    <li id="kv_kup">Квартиры куплю</li>
+    <li id="kv_pro">Квартиры продам</li>
+    <li id="kv_sda">Квартиры сдам</li>
+    <li id="kv_sni">Квартиры сниму</li>
+    </ul>
+</div>
+
+<div class="col-md-2">
+    <ul>
+    <li id="do_kup">Дома куплю</li>
+    <li id="do_pro">Дома продам</li>
+    <li id="do_sda">Дома сдам</li>
+    <li id="do_sni">Дома сниму</li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li id="uc_kup">Участки куплю</li>
+    <li id="uc_pro">Участки продам</li>
+    <li id="uc_sda">Участки сдам</li>
+    <li id="uc_sni">Участки сниму</li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li id="of_kup">Офисы куплю</li>
+    <li id="of_pro">Офисы продам</li>
+    <li id="of_sda">Офисы сдам</li>
+    <li id="of_sni">Офисы сниму</li>
+    </ul>
+</div>
+
+<div class="col-md-2 col-centered">
+    <ul>
+    <li id="ko_kup">Коммерч. куплю</li>
+    <li id="ko_pro">Коммерч. продам</li>
+    <li id="ko_sda">Коммерч. сдам</li>
+    <li id="ko_sni">Коммерч. сниму</li>
+    </ul>
+</div>
+
+</div><!-- second variant -->
+<!-- row row-centered -->
+

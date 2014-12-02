@@ -1,0 +1,42 @@
+
+<!-- Modal -->
+<div class="modal modal-wide fade" id="adhistory" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-adhistory" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-header-without-line">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel-adhistory">История объявления</h4>
+      </div>
+
+      <div id='adhistory-show' class="modal-body">
+        <!-- advert history here -->
+      </div>
+
+      <div class="modal-footer modal-footer-before-text">
+        <span style="color: white;" id="ad_id_start">
+        </span>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <!--
+        <button type="button" class="btn btn-primary">Save changes</button>
+        -->
+      </div>
+
+<div class="container-fluid">
+<div class="panel panel-default">
+  <div class="panel-body">
+Рекомендуем обращать внимание на возможные изменения в текстах объявлений, поданных за разные даты.<br/>
+Это, возможно, позволит отследить динамику запрошенной цены, смену акцентов в описании объекта и т.п. Это позволит наиболее эффективно вести переговоры.<br />
+Отслеживаются тексты на протяжении месяца ( до восьми дат ), если конечно объявления подавались.
+Соответственно, это позволяет оценить позицию рекламодателя, и, также сделать предварительный вывод - агент он или нет.
+<hr class="hr-between-textes"/>
+<p align="right">
+Информация собирается из интернета и анализируется автоматически, поэтому возможен незначительный процент неточностей.
+</p>
+</div>
+</div>
+</div>
+
+    </div>
+  </div>
+</div>
+<!-- modal end -->

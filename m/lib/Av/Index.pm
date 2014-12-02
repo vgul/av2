@@ -1,24 +1,73 @@
 package Av::Index;
 use Mojo::Base 'Mojolicious::Controller';
 use Data::Dumper;
+use Data::Printer;
 use Mojo::Util qw(url_escape);
+use Encode;
 use LWP::UserAgent;
 use HTTP::Request;
 use strict;
 
+my $title='Недвижимость из 1х рук/в 1е руки г.Киев';
+
 sub index {
     my $self = shift;
- #   $self->render( text=>'here' );
+    $self->app->log->debug ( 'Payd: '.  $self->session('paid') );
+    
+    #$self->render( begin1 => "<span color='green'>begin render</span>",
+    #        format=>'html' );
+
+#    $self->render( template=>'index/index0', layout=>'layout0' );
+    $self->render( title=>$title );
 }
 
-
-sub check {
+sub detalize {
     my $self = shift;
-    my $endpoint_split = $self->req->url->to_abs->path->parts;
-    $self->app->log->debug ( "fff: ". $endpoint_split );
-    return 1; 
+    my $report = $self->param('report');
+    my $home = $self->app->home;
+    my $fixtures_path = $home.'/templates/';
+    my $fixture       = 'index/fixtures/'.'kiev'.'/data/demo/';
+    
+    $self->app->log->debug ( 'Report: '.  $report );
+    $self->app->log->debug ( 'Home: '.  $home  );
+    $self->app->log->debug ( 'fixtures: '.  $fixture  );
+    $self->app->log->debug ( 'ready: '.  $fixtures_path.$fixture.$report.'.html.ep'  );
+    unless ($report) {
+        $self->redirect_to( "/" );
+        return 1;
+    }
+
+    if( -f $fixtures_path.$fixture.$report.'.html.ep') {
+        ### ??? WHY RENDERING ???
+        #my $av2data = $self->render( $fixture.$report, 'mojo.to_string'=>1 );
+        my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
+        $self->render( title=>$title, av2data=>decode('utf8',$av2data) );
+    } else {
+        $self->redirect_to( 'index' );
+    }
+
 }
 
+sub after_liqpay {
+    my $self = shift;
+    my @params = $self->param();
+    $self->app->log->debug ( "after_liqpay params: ". join(',',@params ));
+    foreach my $p ( @params ) {
+        $self->app->log->debug ( $p. ': '.  $self->param($p) );
+    }
+    $self->redirect_to('/');
+}
+
+sub liqpay {
+    my $self = shift;
+    my @params = $self->param();
+    $self->app->log->debug ( "params: ". join(',',@params ));
+    foreach my $p ( @params ) {
+        $self->app->log->debug ( $p. ': '.  $self->param($p) );
+    }
+    $self->render(text=>'');
+    return 1;
+}
 
 sub oauth2callback_to_del {
     my $self = shift;
@@ -78,7 +127,7 @@ sub oauth2callback {
             $self->session->{access_token} = $token;
             say 'Got: ', $token;
             $self->redirect_to('/contacts');
-return 1;
+            return 1;
         } else {
           my $err = $tx->error;
           die "$err->{code} response: $err->{message}" if $err->{code};
@@ -142,32 +191,81 @@ sub vklogin {
     return 1;
 }
 
+my @a = qw/янв фев мар апр май июн июл авг сен окт ноя дек /;
+sub date {
+    my $s = shift;
+    my ($y,$m,$d) = split /-/, $s;
+    return $d.$a[$m-1];
+}
+sub human_phone {
+    my $p = shift;
+    my @a = map {
+        '(0'.substr($_,0,2).') '.substr($_,2,3).'-'.
+                substr($_,5,2).'-'.substr($_,7);
+    } split /,/, $p;
+    return join ', ',@a;
+}
+
+my @bold_dates;
 sub history {
     my $self = shift;
-    my $ad_id = $self->param('ad_id');
-    $self->app->log->debug ( "ad_id: ". $ad_id );
-    $self->render( text=>
-'
-<div class="row row-centered">
-<div class="col-md-12 ">
+    my $ad_id_start = $self->param('ad_id');
+    #$self->app->log->debug ( "ad_id_start: ". $ad_id_start );
 
+    ## WHERE AM I
+    #my $endpoint_split = $self->req->url->to_abs->path->parts;
+    #$self->app->log->debug ( "fff: ". Dumper $endpoint_split );
 
-<table class="table table-condensed">
-<tr>
-    <td>20ноя</td>
-    <td>*** MODAL Или двухкомн.кв. комнату, левый, правый берег. Только у собственника. Примем во внимание Ваши пожелания и требования. Срочно.</td>
-</tr>
+    my $retro = $self->app->dbh_av2->selectall_arrayref(
+        'select '. "\n".
+        '    idate '. "\n".
+        '    ,body '. "\n".
+        '    ,hier '. "\n".
+        '    ,phones_to_page '. "\n".
+        'FROM av2data '. "\n".
+        "WHERE ad_id_start = $ad_id_start ". "\n".
+        "ORDER BY idate DESC ". "\n".
+        '-- limit 1 '
+    );
+    my $first=1;
+    my $phones_to_page;
+    ## calculate dates array
+    my @dates = map { $_->[0] } 
+        @{ $self->app->dbh_av2->selectall_arrayref(
+            'select idate from av2data '.
+            'group by idate order by idate desc ') };
+    @bold_dates = @dates[0..$self->app->bold_dates-1];
+    ## end calculate
+    foreach my $a ( @{ $retro } ) {
+        $a->[0] = bold_date(real=>$a->[0],
+                            human=>date($a->[0]));
+        $a->[1] = decode('utf8',$a->[1]);
+        $a->[2] = decode('utf8',$a->[2]); ## hier
+        if( $first ) {
+            $phones_to_page = $a->[3]; ## phones_to_page
+            undef $first;
+        }
+    }
+    #$self->debug( "**** Data: ". p $retro );
+    #$self->render(text=>'here');  
+    #return 1;
+    my $history_data = $self->render('index/fixtures/retro',
+            retro=>$retro, 
+            ad_id_start=>$ad_id_start,
+            phones_to_page=>human_phone($phones_to_page),
+            'mojo.to_string'=>1 ); 
+    #$self->debug( "**** HData: ". $history_data );
 
-<tr> <td>20ноя</td>
-    <td>Автовокзал, Академгородок, Беличи, Борщаговка, Виноградарь, Лесной массив, Лукьяновка, Нивки, Оболонь, Отрадный, Куреневка, Подол, Печерск, Русановка, Сырец, Троещина, Харьковский массив, Чоколовка, у хозяина. Рассмотрю все предложения.</td>
-<tr>
-</table>
-
-Тел. (044) 3423423
-
-
-</div> <!-- row -->
-</div> <!-- col-md -->
-' );
+    $self->render( text => $history_data, ad_id_start=>$ad_id_start );
 }
+
+sub bold_date {
+    my %p = @_; 
+    if( grep $_ eq $p{real}, @bold_dates ) {
+        return '<b>'.$p{human}.'</b>';
+    }
+    return $p{human};
+}
+
+
 ;1;
