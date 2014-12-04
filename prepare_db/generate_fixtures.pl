@@ -79,7 +79,7 @@ foreach my $i ( @list_to_generate ) {
     foreach my $a ( keys %{$h} ) { calculate_store_depth($h->{$a}) };
 #say Dumper $h;
 #exit 0;
-    say scalar keys $h;
+    say scalar keys %{ $h };
     #exit 0;
     write_fixture( data=>$h, fn=>$i );
 #exit 0;
