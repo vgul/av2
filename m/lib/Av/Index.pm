@@ -6,14 +6,24 @@ use Mojo::Util qw(url_escape);
 use Encode;
 use LWP::UserAgent;
 use HTTP::Request;
+use Digest::SHA1 qw/sha1/;
+use MIME::Base64 qw/encode_base64/;
+
 use strict;
 
 my $title='Недвижимость из 1х рук/в 1е руки г.Киев';
+my $how_many_dates_save = 8;
 
 sub index {
     my $self = shift;
-    $self->app->log->debug ( 'Payd: '.  $self->session('paid') );
-    
+
+#$self->show_p;
+$self->how_old_prod;
+
+    #say 'test: ', $self->config('test');
+    #say 'home: ', $self->config('home');
+    say 'home: ', $self->config('some');
+    $self->is_prod;
     #$self->render( begin1 => "<span color='green'>begin render</span>",
     #        format=>'html' );
 
@@ -23,13 +33,25 @@ sub index {
 
 sub detalize {
     my $self = shift;
+
+my $s = '           '. time. "\n";
+$s .= Dumper $self->session('p');
+$s .= '<hr/>';
+$s .= 'Config:       '. $self->config->{how_old_prod}. "\n";
+$s .= 'How old prod: '. $self->how_old_prod. "\n";
+$s .= 'diff:         '. ($self->config->{how_old_prod} - $self->how_old_prod). "\n";
+$s .= 'is_prod: '. $self->is_prod. "\n";
+$s .= 'is_demo: '. $self->is_demo. "\n";
+
     my $report = $self->param('report');
     my $home = $self->app->home;
     my $fixtures_path = $home.'/templates/';
-    my $fixture       = 'index/fixtures/'.'kiev'.'/data/demo/';
+    my $fixture       = 'index/fixtures/'.$self->region.'/data/';
+    $fixture .= 'demo/' if $self->is_demo;
+    $fixture .= 'prod/' if $self->is_prod;
     
-    $self->app->log->debug ( 'Report: '.  $report );
-    $self->app->log->debug ( 'Home: '.  $home  );
+    #$self->app->log->debug ( 'Report: '.  $report );
+    #$self->app->log->debug ( 'Home: '.  $home  );
     $self->app->log->debug ( 'fixtures: '.  $fixture  );
     $self->app->log->debug ( 'ready: '.  $fixtures_path.$fixture.$report.'.html.ep'  );
     unless ($report) {
@@ -41,30 +63,126 @@ sub detalize {
         ### ??? WHY RENDERING ???
         #my $av2data = $self->render( $fixture.$report, 'mojo.to_string'=>1 );
         my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
-        $self->render( title=>$title, av2data=>decode('utf8',$av2data) );
+
+        $self->render( title=>$title, av2data=>decode('utf8',$av2data)
+        ,sess_d=>$s );
+
     } else {
         $self->redirect_to( 'index' );
     }
 
 }
 
+sub payment_data {
+    my $self = shift;
+    my $p = shift;
+    my $order_id = $p->{order_id};
+    my $test = 1;
+    my %data = (
+         payment_form_action=>'https://www.liqpay.com/api/pay'
+        ,payment_public_key=>'i71804176847'
+        ,payment_amount=>'0.10'
+        ,payment_currency=>'UAH'
+        ,payment_description=>encode('cp1251','Информационные услуги')
+        #,payment_description=>'Информационные услуги'
+        ,payment_description=>'Information Service'
+        ,payment_type=>'buy'
+        ,payment_order_id=>$order_id
+        ,payment_pay_way=>'card,delayed'
+        ,payment_language=>'ru'
+        ,payment_sandbox=>$test,
+        ,payment_server_url=>$self->req->url->base.'/liqpay'
+        ,payment_result_url=>$self->req->url->base.'/after_liqpay?'.$order_id
+        ,private_key=>'X4cne5QJAu5al2DoePx5KMCp0oOCy5bDUqtby4DJ'
+    );
+    #,payment_signature=>'Vlad'
+
+    # https://github.com/liqpay/sdk-perl/blob/master/Liqpay.pm
+    my $signature;
+    grep { $signature .= $data{$_} } qw/
+           private_key         payment_amount     payment_currency   
+           payment_public_key  payment_order_id   payment_type
+           payment_description payment_result_url payment_server_url /;
+   
+    delete $data{private_key};
+    my $ready = encode_base64(sha1($signature));
+    chop( $ready );
+    $data{payment_signature} = $ready;
+    return ( %data );
+}
+
+sub get_liqpay_button {
+    my $self = shift;
+    my $info = $self->param('info');
+    $self->debug('Info: '. $info);
+    my $order_id = (map{$_->[0]}@{$self->app->dbh_av2_clients->selectall_arrayref('select max(id) from orders')})[0];
+    ## KIEV kiev
+    $order_id=++${order_id}.substr($self->region,0,1).'-'.substr(time,-4);
+    my $insert = $self->app->dbh_av2_clients->do(
+                "INSERT INTO orders SET order_id='$order_id', info='$info'");
+   
+    $self->debug("Prepared order '$order_id'. Insert return: $insert" );
+    my %payment_data = payment_data($self, {order_id=>$order_id} );
+ 
+    my $button = $self->render( 'index/includes/liqpay_button', %payment_data, 'mojo.to_string'=>1  );
+
+    $self->render(text=>$button);
+}
+
 sub after_liqpay {
     my $self = shift;
     my @params = $self->param();
-    $self->app->log->debug ( "after_liqpay params: ". join(',',@params ));
+    my $order_id = $params[0];
+    #$self->app->log->debug ( "after_liqpay params: ". join(',',@params ));
     foreach my $p ( @params ) {
         $self->app->log->debug ( $p. ': '.  $self->param($p) );
     }
-    $self->redirect_to('/');
+    my @data = @{ $self->app->dbh_av2_clients->selectall_arrayref(
+        'SELECT status, info, date2, amount, UNIX_TIMESTAMP(date2)'.
+        "FROM orders WHERE order_id='$order_id' ORDER BY date2 DESC")};
+    ## WARN
+    $self->debug("*** ORDERID $order_id. More than one record")  
+                                                if scalar @data >1;
+    my $status     = $data[0]->[0];
+    my $info       = $data[0]->[1];
+    my $stamp      = $data[0]->[2];
+    my $amount     = $data[0]->[3];
+    my $unix_stamp = $data[0]->[4];
+
+    my $pay_sheet = $self->session('p');
+    $pay_sheet->{$unix_stamp} = {id=>$order_id,sum=>$amount};
+
+    my @dates = reverse sort keys %{ $pay_sheet };
+    #say "DATES: \n".join "\n", @dates;
+    for(my $i=$self->config->{how_many_dates_save}; $i<scalar @dates; $i++ ) {
+        #say "DELETE: ". $dates[$i];
+        delete $pay_sheet->{$dates[$i]};
+    }
+    $self->session(p=>$pay_sheet); # date2
+
+    $self->debug("Order_id: $order_id, Status: $status, Info: $info");
+    $self->redirect_to($self->url_for('detalize').$info.'.html');
 }
 
 sub liqpay {
     my $self = shift;
     my @params = $self->param();
-    $self->app->log->debug ( "params: ". join(',',@params ));
+    #$self->app->log->debug ( "params: ". join(',',@params ));
     foreach my $p ( @params ) {
         $self->app->log->debug ( $p. ': '.  $self->param($p) );
     }
+    my $sql = 'UPDATE orders SET '.
+        ' amount   =   '. $self->param('amount'). "\n".
+        ',minus    =   '. $self->param('receiver_commission'). "\n".
+        ',phone    = \''. $self->param('sender_phone'). '\''. "\n".
+        ',status   = \''. $self->param('status'). '\''. "\n".
+        ',tran_id  =   '. $self->param('transaction_id'). "\n".
+        ',type     = \''. $self->param('type'). '\''. "\n".
+        ',date1    = date1'. "\n".
+        ',date2    = NOW()'. "\n".
+        'WHERE order_id = \''. $self->param('order_id'). '\'';
+    my $update = $self->app->dbh_av2_clients->do( $sql );
+    $self->debug( "Update: $update" );
     $self->render(text=>'');
     return 1;
 }
@@ -268,4 +386,4 @@ sub bold_date {
 }
 
 
-;1;
+1;

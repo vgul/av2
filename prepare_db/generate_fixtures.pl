@@ -142,10 +142,20 @@ sub write_fixture {
                  '</td>';
 
             if( $demo_prod eq 'demo' ) {
-                say ADS '<td width="15%";>', $phones, '</td>';
-#<a data-toggle="tooltip" data-placement="top" title="Просмотреть" class="help_call_sc_view glyphicon glyphicon-eye-open" type="" href="#" onclick="return false;"></a>
+                ## TODO green phones on prod
+                if( grep $p->{$a}->{idate} eq $_, @bold_dates ) {
+                    say ADS '<td>',
+                        '<a data-toggle="modal" data-target="#ppay" title="Смотреть" class="glyphicon glyphicon-eye-open" href="#" onclick="return false;"></a>',
+                        '</td>';
+                } else {
+                    say ADS '<td width="15%";>', $phones, '</td>';
+                }
             } else {
-                say ADS '<td>', $phones, '</td>';
+                if( grep $p->{$a}->{idate} eq $_, @bold_dates ) {
+                    say ADS '<td width="15%";><b><font color="green">', $phones, '</font></b></td>';
+                } else {
+                    say ADS '<td width="15%";>', $phones, '</td>';
+                }
             }
 
             say ADS '</tr>';
@@ -177,7 +187,7 @@ sub date {
 sub bold_date {
     my %p = @_; 
     if( grep $_ eq $p{real}, @bold_dates ) {
-        return '<b>'.$p{human}.'</b>';
+        return '<b><font color="green">'.$p{human}.'</font></b>';
     }
     return $p{human};
 }

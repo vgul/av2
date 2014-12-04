@@ -32,7 +32,7 @@
     <script type="text/javascript">
 
     %= include 'index/fixtures/kiev/data_structure';
-/*
+
     actions_array = jQuery.map(structure_hash, function(v,i) { return i; });
     // console.log(actions_array);
 
@@ -43,6 +43,7 @@
     // console.log(selected_region);
 
     var find_depart;
+    var find_page;
     jQuery.each(actions_array,function(i,v) {
         // console.log( v );
         var regions0 = structure_hash[v];
@@ -53,9 +54,11 @@
                 if( i2 == 'n' ) { return true };
                 // console.log("Selected: " + selected_region + " I2: " + structure_hash[v][i1][i2]);
                 if( selected_region == structure_hash[v][i1][i2] ) {
-                    // console.log('Found' + ' v: ' + v + 
-                    //                    '. i1: ' + i1 + '. i2: ' + i2 );
+                    console.log('Found' + ' v: ' + v + 
+                                        '. i1: ' + i1 + 
+                                        '. i2: ' + i2 + '. v2: ' + v2 );
                     find_depart=v;
+                    find_page=v2;
                     return false;
                 }
             });
@@ -63,8 +66,23 @@
     });
 
     console.log( "find_depart: " + find_depart );
-*/
+    console.log( "find_page: " + find_page );
+
     $(function () {
+        %# store liqpay button %
+        $("a[data-target='#ppay']").click(function(){
+            console.log('pay clicked');
+            // $("input[name='order_id']").attr('value','Sumper');
+            jQuery.ajax({
+                type: "GET",
+                dataType: "text",
+                // contentType: 'text/text; charset=utf8',
+                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page
+            }).done(function( response ) {
+                // console.log('ajax: ' + response );
+                $('#liqpay_button').html( response );
+            });
+        });
         $("a[data-group='history1']").click(function(){
             var ad_id_start = $(this).attr('href');
             ad_id_start = ad_id_start.replace('#','');
@@ -76,7 +94,7 @@
                 type: "GET",
                 dataType: "text",
                 // contentType: 'text/text; charset=utf8',
-                url: "<%== url_for "history" %>?ad_id=" + ad_id_start,
+                url: "<%== url_for "history" %>?ad_id=" + ad_id_start
             }).done(function( response ) {
                 // console.log('ajax: ' + response );
                 $('#adhistory-show').html( response );
@@ -90,19 +108,20 @@
 <body>
 
 %= include 'index/includes/navbar';
+<pre>
+%== $sess_d
+</pre>
 
 <div class="container">
 
-<br />
 <%== $av2data %>
 </div> <!-- container-fluid -->
 
 <%# history_show %>
-
 %= include 'index/includes/history-modal';
 
-<%# NOTHING contacts_show %> 
-<%# = include 'index/includes/contacts-modal'; %>
+<%# NOTHING prepayment %> 
+%= include 'index/includes/prepayment-modal';
 
 %= include 'index/includes/foot0';
 </body>

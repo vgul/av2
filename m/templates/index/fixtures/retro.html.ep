@@ -5,7 +5,7 @@
     <h4><b>Тел</b>: <%= $phones_to_page %></h4>
 
 <table class="table table-condensed table-condensed-small-bottom">
-<% my $old_hier; %>
+<% my $old_hier = ''; %>
 <% foreach my $a ( @{ $retro } ) { %>
 <tr>
 <td> <%== $a->[0] %> </td>

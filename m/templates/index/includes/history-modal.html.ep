@@ -8,6 +8,8 @@
         <h4 class="modal-title" id="myModalLabel-adhistory">История объявления</h4>
       </div>
 
+<a data-toggle="modal" data-target="#ppay" title="Смотреть" class="glyphicon glyphicon-eye-open" href="#"></a>
+
       <div id='adhistory-show' class="modal-body">
         <!-- advert history here -->
       </div>

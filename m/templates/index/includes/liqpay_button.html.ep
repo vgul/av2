@@ -1,0 +1,24 @@
+
+<form method="POST" accept-charset="utf-8" action="<%= $payment_form_action %>">
+<input type="hidden" name="public_key" value="<%=      $payment_public_key %>" />
+<input type="hidden" name="amount" value="<%=          $payment_amount %>" />
+<input type="hidden" name="currency" value="<%=        $payment_currency %>" />
+<input type="hidden" name="description" value="<%=     $payment_description %>" />
+<input type="hidden" name="type" value="<%=            $payment_type %>" />
+<input type="hidden" name="pay_way" value="<%=         $payment_pay_way %>" />
+<input type="hidden" name="language" value="<%=        $payment_language %>" />
+<% if( $payment_sandbox ) { %>
+<input type="hidden" name="sandbox" value="1" />
+<% } %>
+<input type="hidden" name="order_id" value="<%=        $payment_order_id %>" />
+<input type="hidden" name="server_url" value="<%=      $payment_server_url %>" />
+<input type="hidden" name="result_url" value="<%=      $payment_result_url %>" />
+<input type="hidden" name="signature" value="<%=       $payment_signature %>" />
+
+<input type="image" src="//static.liqpay.com/buttons/p1ru.radius.png" name="btn_text" />
+</form>
+<!--
+<font color="white">
+<%= $payment_order_id %>
+</font>
+-->

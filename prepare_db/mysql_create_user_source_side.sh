@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 
@@ -7,7 +6,7 @@
 
 set -u
 
-USER_SOURCE='av2source'
+USER_SOURCE='av2source' 
 USER_SOURCE_PASS='avS12'
 SOURCE_DB='a1_kiev'
 
@@ -32,11 +31,9 @@ mysql -u root -e "REVOKE GRANT OPTION   ON ${TARGET_DB}.* FROM ${USER_TARGET}"
 
 echo 'Users:'
 echo -e \\t ${USER_SOURCE}:
-mysql -u root -e "GRANT Select          ON ${SOURCE_DB}.* TO '${USER_SOURCE}'@'%';"
-mysql -u root -e "GRANT Select          ON ${SOURCE_DB}.* TO '${USER_SOURCE}'@'localhost';"
+mysql -u root -e "GRANT Select, Lock Tables ON ${SOURCE_DB}.* TO '${USER_SOURCE}'@'%';"
+mysql -u root -e "GRANT Select, Lock Tables ON ${SOURCE_DB}.* TO '${USER_SOURCE}'@'localhost';"
 echo -e \\t ${USER_TARGET}:
 mysql -u root -e "GRANT ALL PRIVILEGES  ON ${TARGET_DB}.* TO '${USER_TARGET}'@'%';"
 mysql -u root -e "GRANT ALL PRIVILEGES  ON ${TARGET_DB}.* TO '${USER_TARGET}'@'localhost';"
-
-
 
