@@ -3,8 +3,10 @@
 use v5.10;
 use DBI;
 use Data::Dumper;
+use File::Path;
 use strict;
 
+my $region = 'kiev';
 ## see create_site_db.sh
 my $user_target = 'root';
 my $password_target = '';
@@ -27,7 +29,9 @@ my $linear = $dbh_target->selectall_arrayref('select type, linear_name_translit,
 
 my $first1=1;
 
-open FIXT, '>../m/templates/index/fixtures/kiev/data_structure.html.ep';
+my $path = '../m/templates/index/fixtures/'.$region;
+mkpath( $path );
+open FIXT, '>'.$path.'/data_structure.html.ep';
 say FIXT '    var structure_hash = {';
 foreach my $t (@types) {
 
@@ -100,9 +104,9 @@ sub write_fixture {
     my $filename     = $ptr{fn}.'.html.ep';
     foreach my $demo_prod ( qw/ demo prod / ) {
         my $path = 
-        '../m/templates/index/fixtures/kiev/data/'.$demo_prod;
+        '../m/templates/index/fixtures/'.$region.'/data/'.$demo_prod;
         unless( -d $path ) {
-            mkdir $path or die 'mkdir error '.$!;
+            mkpath $path or die 'mkdir error '.$!;
         }
 
         open ADS, '>'.$path.'/'.$filename;
