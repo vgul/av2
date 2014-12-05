@@ -16,16 +16,6 @@ my $title='Недвижимость из 1х рук/в 1е руки г.Киев'
 sub index {
     my $self = shift;
 
-#$self->show_p;
-$self->how_old_prod;
-
-    #say 'test: ', $self->config('test');
-    #say 'home: ', $self->config('home');
-    say 'home: ', $self->config('some');
-    #$self->render( begin1 => "<span color='green'>begin render</span>",
-    #        format=>'html' );
-
-#    $self->render( template=>'index/index0', layout=>'layout0' );
     $self->render( title=>$title );
 }
 
