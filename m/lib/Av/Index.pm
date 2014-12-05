@@ -12,7 +12,6 @@ use MIME::Base64 qw/encode_base64/;
 use strict;
 
 my $title='Недвижимость из 1х рук/в 1е руки г.Киев';
-my $how_many_dates_save = 8;
 
 sub index {
     my $self = shift;
@@ -23,7 +22,6 @@ $self->how_old_prod;
     #say 'test: ', $self->config('test');
     #say 'home: ', $self->config('home');
     say 'home: ', $self->config('some');
-    $self->is_prod;
     #$self->render( begin1 => "<span color='green'>begin render</span>",
     #        format=>'html' );
 
@@ -33,16 +31,20 @@ $self->how_old_prod;
 
 sub detalize {
     my $self = shift;
+    my $sess_debug;
 
-my $s = '           '. time. "\n";
-$s .= Dumper $self->session('p');
-$s .= '<hr/>';
-$s .= 'Config:       '. $self->config->{how_old_prod}. "\n";
-$s .= 'How old prod: '. $self->how_old_prod. "\n";
-$s .= 'diff:         '. ($self->config->{how_old_prod} - $self->how_old_prod). "\n";
-$s .= 'is_prod: '. $self->is_prod. "\n";
-$s .= 'is_demo: '. $self->is_demo. "\n";
-
+if(0) {
+$sess_debug = '           '. time. "\n";
+$sess_debug .= Dumper $self->session('p');
+$sess_debug .= '<hr/>';
+my $conf = $self->conf_prod_age;
+my $curr = $self->how_old_prod;
+$sess_debug .= 'Conf prod_age:'. $self->conf_prod_age. " as constand\n";
+$sess_debug .= 'How old prod: '. $self->how_old_prod. " calculate from cur time\n";
+$sess_debug .= 'diff:         '. ($conf - $curr). " REST ". ($conf-$curr)/60 ."\n";
+$sess_debug .= 'is_prod: '. $self->is_prod. "\n";
+$sess_debug .= 'is_demo: '. $self->is_demo. "\n";
+}
     my $report = $self->param('report');
     my $home = $self->app->home;
     my $fixtures_path = $home.'/templates/';
@@ -50,10 +52,10 @@ $s .= 'is_demo: '. $self->is_demo. "\n";
     $fixture .= 'demo/' if $self->is_demo;
     $fixture .= 'prod/' if $self->is_prod;
     
-    #$self->app->log->debug ( 'Report: '.  $report );
+    $self->info ( 'Detalize: '.  $report );
     #$self->app->log->debug ( 'Home: '.  $home  );
-    $self->app->log->debug ( 'fixtures: '.  $fixture  );
-    $self->app->log->debug ( 'ready: '.  $fixtures_path.$fixture.$report.'.html.ep'  );
+    #$self->app->log->info ( 'fixtures: '.  $fixture  );
+    #$self->info ( 'Detalize: '.  $fixtures_path.$fixture.$report.'.html.ep'  );
     unless ($report) {
         $self->redirect_to( "/" );
         return 1;
@@ -65,10 +67,10 @@ $s .= 'is_demo: '. $self->is_demo. "\n";
         my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
 
         $self->render( title=>$title, av2data=>decode('utf8',$av2data)
-        ,sess_d=>$s );
+        ,sess_debug=>$sess_debug );
 
     } else {
-        $self->redirect_to( 'index' );
+        $self->redirect_to( $self->url_for('index' ));
     }
 
 }
@@ -77,14 +79,14 @@ sub payment_data {
     my $self = shift;
     my $p = shift;
     my $order_id = $p->{order_id};
-    my $test = 1;
+    my $test = $self->sandbox_payment;
     my %data = (
          payment_form_action=>'https://www.liqpay.com/api/pay'
         ,payment_public_key=>'i71804176847'
         ,payment_amount=>'0.10'
         ,payment_currency=>'UAH'
-        ,payment_description=>encode('cp1251','Информационные услуги')
-        #,payment_description=>'Информационные услуги'
+        #,payment_description=>encode('cp1251','Информационные услуги')
+        #,payment_description=>encode('utf8','Информационные услуги')
         ,payment_description=>'Information Service'
         ,payment_type=>'buy'
         ,payment_order_id=>$order_id
@@ -113,15 +115,18 @@ sub payment_data {
 
 sub get_liqpay_button {
     my $self = shift;
-    my $info = $self->param('info');
-    $self->debug('Info: '. $info);
+    my $info  = $self->param('info');
+    my $ad_id = $self->param('ad_id_start');
+    $self->info("GLB: ad_id: '$ad_id', Info: '$info'");
     my $order_id = (map{$_->[0]}@{$self->app->dbh_av2_clients->selectall_arrayref('select max(id) from orders')})[0];
     ## KIEV kiev
     $order_id=++${order_id}.substr($self->region,0,1).'-'.substr(time,-4);
     my $insert = $self->app->dbh_av2_clients->do(
-                "INSERT INTO orders SET order_id='$order_id', info='$info'");
+      "INSERT INTO orders SET order_id='$order_id' ".
+            ($ad_id ? ",ad_id=$ad_id":''). 
+            ($info ?  ",info='$info'":'') );
    
-    $self->debug("Prepared order '$order_id'. Insert return: $insert" );
+    $self->info("GLB: Prepared order '$order_id'. Insert return: $insert" );
     my %payment_data = payment_data($self, {order_id=>$order_id} );
  
     my $button = $self->render( 'index/includes/liqpay_button', %payment_data, 'mojo.to_string'=>1  );
@@ -135,13 +140,13 @@ sub after_liqpay {
     my $order_id = $params[0];
     #$self->app->log->debug ( "after_liqpay params: ". join(',',@params ));
     foreach my $p ( @params ) {
-        $self->app->log->debug ( $p. ': '.  $self->param($p) );
+        $self->info ( 'AfterLiqpay: '.$p. ': '.  $self->param($p) );
     }
     my @data = @{ $self->app->dbh_av2_clients->selectall_arrayref(
         'SELECT status, info, date2, amount, UNIX_TIMESTAMP(date2)'.
         "FROM orders WHERE order_id='$order_id' ORDER BY date2 DESC")};
     ## WARN
-    $self->debug("*** ORDERID $order_id. More than one record")  
+    $self->app->log->error("*** ORDERID $order_id. More than one record")  
                                                 if scalar @data >1;
     my $status     = $data[0]->[0];
     my $info       = $data[0]->[1];
@@ -160,7 +165,7 @@ sub after_liqpay {
     }
     $self->session(p=>$pay_sheet); # date2
 
-    $self->debug("Order_id: $order_id, Status: $status, Info: $info");
+    $self->info("After liqpay: Order_id: $order_id, Status: $status, Info: $info");
     $self->redirect_to($self->url_for('detalize').$info.'.html');
 }
 
@@ -169,7 +174,7 @@ sub liqpay {
     my @params = $self->param();
     #$self->app->log->debug ( "params: ". join(',',@params ));
     foreach my $p ( @params ) {
-        $self->app->log->debug ( $p. ': '.  $self->param($p) );
+        $self->info ( 'LIQPAY: '. $p. ': '.  $self->param($p) );
     }
     my $sql = 'UPDATE orders SET '.
         ' amount   =   '. $self->param('amount'). "\n".
@@ -182,7 +187,7 @@ sub liqpay {
         ',date2    = NOW()'. "\n".
         'WHERE order_id = \''. $self->param('order_id'). '\'';
     my $update = $self->app->dbh_av2_clients->do( $sql );
-    $self->debug( "Update: $update" );
+    $self->debug( "LIQPAY. I update my db. Status: $update" );
     $self->render(text=>'');
     return 1;
 }
@@ -328,7 +333,7 @@ my @bold_dates;
 sub history {
     my $self = shift;
     my $ad_id_start = $self->param('ad_id');
-    #$self->app->log->debug ( "ad_id_start: ". $ad_id_start );
+    $self->info ( "History: ad_id_start: ". $ad_id_start );
 
     ## WHERE AM I
     #my $endpoint_split = $self->req->url->to_abs->path->parts;
@@ -351,12 +356,14 @@ sub history {
     my @dates = map { $_->[0] } 
         @{ $self->app->dbh_av2->selectall_arrayref(
             'select idate from av2data '.
-            'group by idate order by idate desc ') };
-    @bold_dates = @dates[0..$self->app->bold_dates-1];
+            'group by idate order by idate DESC ') };
+    @bold_dates = @dates[0..$self->config->{bold_dates}-1];
     ## end calculate
+    my @ad_dates;
     foreach my $a ( @{ $retro } ) {
-        $a->[0] = bold_date(real=>$a->[0],
-                            human=>date($a->[0]));
+        push @ad_dates, $a->[0];
+                       #bold_date(real=>$a->[0],
+                       #     human=>date($a->[0]));
         $a->[1] = decode('utf8',$a->[1]);
         $a->[2] = decode('utf8',$a->[2]); ## hier
         if( $first ) {
@@ -364,26 +371,32 @@ sub history {
             undef $first;
         }
     }
-    #$self->debug( "**** Data: ". p $retro );
-    #$self->render(text=>'here');  
-    #return 1;
+
+    my $show_liqpay_button;
+    $show_liqpay_button = 1 if $self->is_demo and 
+                      grep @ad_dates[0] eq $_, @bold_dates;
+
     my $history_data = $self->render('index/fixtures/retro',
             retro=>$retro, 
             ad_id_start=>$ad_id_start,
+            bold_dates=>[@bold_dates],
             phones_to_page=>human_phone($phones_to_page),
+            show_liqpay_button=>$show_liqpay_button,
             'mojo.to_string'=>1 ); 
     #$self->debug( "**** HData: ". $history_data );
-
+    #$self->info("Dates: ". join ',', @ad_dates );
+    #$self->info("Bold: ". join ',', @bold_dates );
+    #$self->info('Hist: show_liqpay_button:'. $show_liqpay_button );
     $self->render( text => $history_data, ad_id_start=>$ad_id_start );
 }
 
-sub bold_date {
-    my %p = @_; 
-    if( grep $_ eq $p{real}, @bold_dates ) {
-        return '<b>'.$p{human}.'</b>';
-    }
-    return $p{human};
-}
+#sub bold_date {
+#    my %p = @_; 
+#    if( grep $_ eq $p{real}, @bold_dates ) {
+#        return '<font color="green"><b>'.$p{human}.'</b></font>';
+#    }
+#    return $p{human};
+#}
 
 
 1;

@@ -79,24 +79,6 @@
     $(function () {
         $.each(actions_array,function(v,index){show_as_href(index)});
         $.each(actions_array,function(k,action_id) {show_regions0(k,action_id)});
-
-/*
-        $("a[data-group='contacts']").click(function(){
-            var ad_id = $(this).attr('href');
-            ad_id = ad_id.replace('#','');
-            console.log( 'show_contacts; ' + ad_id  );
-            // $('#myModal').modal('backdrop');
-
-            $.ajax({
-                type: "GET",
-                dataType: "text",
-                url: "<%== url_for "history" %>?ad_id=" + ad_id,
-            }).done(function( response ) {
-                // console.log('ajax: ' + response );
-                //$('#history_show').html( response );
-            });
-        })
-*/
     });
 
 
@@ -111,6 +93,14 @@
 
 %= include 'index/includes/begin1';
 
+<div class="panel panel-default">
+  <div class="panel-body" style="text-align: center;">
+<h3>
+Недвижимость из <b>1х</b> рук / в <b>1е</b> руки.</br>
+%= $self->index_subtext
+</h3>
+</div>
+</div>
 </div> <!-- container-fluid -->
 
 %# myModalLabel-select1 %

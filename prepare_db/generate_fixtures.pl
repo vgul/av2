@@ -137,7 +137,15 @@ sub write_fixture {
                     ),
 
                     ( $p->{$a}->{depth} > 1 ? 
-                    '<a href="#'.$p->{$a}->{ad_id_start}.'" data-group="history1" data-toggle="modal" data-target="#adhistory">'.
+                    '<a href="#'.$p->{$a}->{ad_id_start}.'"'.
+                    ' data-toggle="modal" '.
+                    (
+                        (grep $_ eq $p->{$a}->{idate}, @bold_dates) ?
+                        'data-bold="1" '
+                        :
+                        ''
+                    ).
+                    'data-target="#adhistory">'.
                           $p->{$a}->{body}.
                     '</a>' 
                     :
@@ -149,7 +157,13 @@ sub write_fixture {
                 ## TODO green phones on prod
                 if( grep $p->{$a}->{idate} eq $_, @bold_dates ) {
                     say ADS '<td>',
-                        '<a data-toggle="modal" data-target="#ppay" title="Смотреть" class="glyphicon glyphicon-eye-open" href="#" onclick="return false;"></a>',
+                        '<a data-toggle="modal" '.
+                          ' data-target="#ppay" '.
+                          ' title="Смотреть" '.
+                          ' class="glyphicon glyphicon-eye-open" '.
+                          ' href="#'.$p->{$a}->{ad_id_start}.'"'.
+                         #' onclick="return false;"'.
+                          '></a>',
                         '</td>';
                 } else {
                     say ADS '<td width="15%";>', $phones, '</td>';

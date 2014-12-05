@@ -34,3 +34,6 @@ mysql -u root -D ${TARGET_DB} -e 'describe av2data'
 ## set param for SOURCE_DB, TARGET_DB, set_env.sh see README
 time perl normalize_db.pl
 #time perl test.pl
+
+
+## mysqldump -u root av2_kiev_pre | mysql -u root -D av2_kiev

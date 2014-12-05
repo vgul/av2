@@ -1,10 +1,10 @@
 package Av;
 use Mojo::Base 'Mojolicious';
 use DBI;
+use Data::Dumper;
 #use strict;
 
 use Helpers;
-has 'bold_dates' => 2;
 has 'dbh_av2' => sub {
     my $self = shift;
     my $dbh = DBI->connect(
@@ -44,25 +44,29 @@ has 'dbh_av2_clients' => sub {
 sub startup {
     my $self = shift;
 
+
+    #$self->session(expiration=>60*60*24*14);
+    #$self->session(expires=>time+60*60*24*14);
     #$self->plugin('DefaultHelpers');
     #$self->app->dbh_av2->do('SET NAMES utf8');
-    #$self->log->level('info');
+    $self->log->level('info');
     
-    $self->helper( debug => sub {
-        my ($c, $str) = @_;
-        $c->app->log->debug($str);
-    });
+    $self->helper( debug => sub { my($c,$str)= @_; $c->app->log->debug($str); });
+    $self->helper( info  => sub { my($c,$str)= @_; $c->app->log->info($str); });
 
     my $config = $self->plugin('Config'); # => {file => 'ashafix.conf' });
-
-    $self->helper( show_p       => sub { Helpers::show_p(@_) } );
-    $self->helper( is_demo      => sub { Helpers::is_demo(@_) } );
-    $self->helper( is_prod      => sub { Helpers::is_prod(@_) } );
-    $self->helper( how_old_prod => sub { Helpers::how_old_prod(@_) } );
-    $self->helper( region       => sub { Helpers::region(@_) } );
-
     $self->secrets(['Rolling stones']);
     $self->sessions->cookie_name('zvonar_av2');
+    $self->sessions->default_expiration($self->config->{default_expiration});
+
+    $self->helper( is_demo         => sub { Helpers::is_demo(@_) } );
+    $self->helper( is_prod         => sub { Helpers::is_prod(@_) } );
+    $self->helper( how_old_prod    => sub { Helpers::how_old_prod(@_) } );
+    $self->helper( conf_prod_age   => sub { Helpers::conf_prod_age(@_) } );
+    $self->helper( region          => sub { Helpers::region(@_) } );
+    $self->helper( index_subtext   => sub { Helpers::index_subtext(@_) } );
+    $self->helper( sandbox_payment => sub { Helpers::sandbox_payment(@_) } );
+
 
     #$self->app->log->debug ( "*** Start");
 

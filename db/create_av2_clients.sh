@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS ${AV2_CLIENT_TABLE} (
     tran_id        INT(6),
     type           VARCHAR(16),
     info           VARCHAR(64),
+    ad_id          int(6) DEFAULT NULL,
     date1          TIMESTAMP NOT NULL,
     date2          TIMESTAMP,
     PRIMARY KEY (id,order_id)

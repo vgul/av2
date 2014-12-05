@@ -69,27 +69,33 @@
     console.log( "find_page: " + find_page );
 
     $(function () {
-        %# store liqpay button %
+        %# store liqpay button when plain feed
         $("a[data-target='#ppay']").click(function(){
-            console.log('pay clicked');
+            var ad_id_start = $(this).attr('href');
+            ad_id_start = ad_id_start.replace('#','');
+            console.log('pay clicked. ad_id: ' + ad_id_start );
             // $("input[name='order_id']").attr('value','Sumper');
             jQuery.ajax({
                 type: "GET",
                 dataType: "text",
                 // contentType: 'text/text; charset=utf8',
-                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page
+                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page +
+                            '&ad_id_start=' + ad_id_start
             }).done(function( response ) {
                 // console.log('ajax: ' + response );
                 $('#liqpay_button').html( response );
             });
         });
-        $("a[data-group='history1']").click(function(){
+
+        // before show history
+        $("a[data-target='#adhistory']").click(function(){
             var ad_id_start = $(this).attr('href');
             ad_id_start = ad_id_start.replace('#','');
-            console.log( 'show_history; ' + ad_id_start  );
+            console.log( 'show_history: ' + ad_id_start  );
             // $('#myModal').modal('backdrop');
             jQuery("#ad_id_start").text(ad_id_start);
 
+            // get data for history
             jQuery.ajax({
                 type: "GET",
                 dataType: "text",
@@ -99,6 +105,25 @@
                 // console.log('ajax: ' + response );
                 $('#adhistory-show').html( response );
             });
+
+% if( $self->is_demo ) {
+            // generate liqpay button
+            if( $(this).is("[data-bold]") ) {
+            console.log( 'here' );
+            jQuery.ajax({
+                type: "GET",
+                dataType: "text",
+                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page+
+                            '&ad_id_start=' + ad_id_start
+            }).done(function( response ) {
+                // console.log('ajax: ' + response );
+                $('#liqpay_button_in_history').html( response );
+            });
+            } else {
+                // reset filled data (maybe)
+                $('#liqpay_button_in_history').text( '' );
+            }
+% }
         });
     });
     </script>
@@ -108,9 +133,11 @@
 <body>
 
 %= include 'index/includes/navbar';
+% if( $sess_debug ) {
 <pre>
-%== $sess_d
+%== $sess_debug
 </pre>
+% }
 
 <div class="container">
 
