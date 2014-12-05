@@ -35,18 +35,23 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Сервисы <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="#">Написать нам</a></li>
+            <li><a data-toggle="modal" data-target="#contact_us" href="#">Написать нам</a></li>
             <li><a href="#">Просмотреть баланс</a></li>
+% if( $self->config->{comment} ) {
+<!--
             <li class="divider"></li>
             <li><a href="#">Separated link</a></li>
             <li class="divider"></li>
             <li><a href="#">One more separated link</a></li>
+-->
+% }
           </ul>
         </li>
 
         <!--
         <li><a href="#">Link</a></li>
         -->
+% if( $self->config->{comment} ) {
         <!--
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">IgorSlavin@gmail.com <span class="caret"></span></a>
@@ -59,6 +64,7 @@
           </ul>
         </li>
         -->
+% }
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

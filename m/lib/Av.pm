@@ -49,12 +49,15 @@ sub startup {
     #$self->session(expires=>time+60*60*24*14);
     #$self->plugin('DefaultHelpers');
     #$self->app->dbh_av2->do('SET NAMES utf8');
-    $self->log->level('info');
     
     $self->helper( debug => sub { my($c,$str)= @_; $c->app->log->debug($str); });
     $self->helper( info  => sub { my($c,$str)= @_; $c->app->log->info($str); });
 
     my $config = $self->plugin('Config'); # => {file => 'ashafix.conf' });
+
+    # if empty - debug. or info
+    $self->log->level($config->{log_level}) if exists $config->{log_level};
+
     $self->secrets(['Rolling stones']);
     $self->sessions->cookie_name('zvonar_av2');
     $self->sessions->default_expiration($self->config->{default_expiration});
@@ -66,6 +69,7 @@ sub startup {
     $self->helper( region          => sub { Helpers::region(@_) } );
     $self->helper( index_subtext   => sub { Helpers::index_subtext(@_) } );
     $self->helper( sandbox_payment => sub { Helpers::sandbox_payment(@_) } );
+    $self->helper( human_date      => sub { Helpers::human_date(@_) } );
 
 
     #$self->app->log->debug ( "*** Start");
@@ -76,6 +80,7 @@ sub startup {
     $r->get('/')->to('index#index')->name('index');
     #$r->any([qw/GET/]=>'/a/(:report)')->to('index#detalize')->name('detalize');
     $r->get('/a/(:report)',{report=>undef})->to('index#detalize')->name('detalize');
+    $r->post('contact_us')->to('index#contact_us')->name('contact_us');
 
     $r->get('/history')->to('index#history')->name('history');
     $r->get('/vklogin')->to('index#vklogin')->name('vklogin');

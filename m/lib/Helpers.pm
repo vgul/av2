@@ -1,11 +1,20 @@
 package Helpers;
 use v5.10;
 use Data::Dumper;
+use Encode;
 
 sub index_subtext {
     my $self = shift;
     return $self->config->{$self->region}->{index_subtext};
-'Один раз в неделю.'
+    #'Один раз в неделю.'
+}
+
+my @month = qw/янв фев мар апр май июн июл авг сен окт ноя дек /;
+sub human_date {
+    my $self = shift;
+    my $date = shift;
+    my ($y,$m,$d) = split /-/, $date;
+    return decode('utf8',$d.$month[$m-1]);
 }
 
 sub sandbox_payment {

@@ -15,21 +15,31 @@ my $title='Недвижимость из 1х рук/в 1е руки г.Киев'
 
 sub index {
     my $self = shift;
-
+    my $ip = $self->tx->remote_address;
+    $self->info("Access Index. IP: $ip");
     $self->render( title=>$title );
+}
+
+sub contact_us {
+    my $self = shift;
+    my @params = $self->param();
+
+    $self->info('Email Sener: '. $self->param('sender') );
+    $self->info('Email Text: '. $self->param('message') );
+    $self->redirect_to( $self->url_for('index' ));
 }
 
 sub detalize {
     my $self = shift;
     my $sess_debug;
 
-if(0) {
+if($self->config->{show_prod_demo}) {
 $sess_debug = '           '. time. "\n";
 $sess_debug .= Dumper $self->session('p');
 $sess_debug .= '<hr/>';
 my $conf = $self->conf_prod_age;
 my $curr = $self->how_old_prod;
-$sess_debug .= 'Conf prod_age:'. $self->conf_prod_age. " as constand\n";
+$sess_debug .= 'Conf prod_age:'. $self->conf_prod_age. " as constant\n";
 $sess_debug .= 'How old prod: '. $self->how_old_prod. " calculate from cur time\n";
 $sess_debug .= 'diff:         '. ($conf - $curr). " REST ". ($conf-$curr)/60 ."\n";
 $sess_debug .= 'is_prod: '. $self->is_prod. "\n";
@@ -133,7 +143,7 @@ sub after_liqpay {
         $self->info ( 'AfterLiqpay: '.$p. ': '.  $self->param($p) );
     }
     my @data = @{ $self->app->dbh_av2_clients->selectall_arrayref(
-        'SELECT status, info, date2, amount, UNIX_TIMESTAMP(date2)'.
+        'SELECT status, info, date2, amount, UNIX_TIMESTAMP(date2),ad_id '.
         "FROM orders WHERE order_id='$order_id' ORDER BY date2 DESC")};
     ## WARN
     $self->app->log->error("*** ORDERID $order_id. More than one record")  
@@ -143,6 +153,7 @@ sub after_liqpay {
     my $stamp      = $data[0]->[2];
     my $amount     = $data[0]->[3];
     my $unix_stamp = $data[0]->[4];
+    my $ad_id      = $data[0]->[5];
 
     my $pay_sheet = $self->session('p');
     $pay_sheet->{$unix_stamp} = {id=>$order_id,sum=>$amount};
@@ -156,7 +167,8 @@ sub after_liqpay {
     $self->session(p=>$pay_sheet); # date2
 
     $self->info("After liqpay: Order_id: $order_id, Status: $status, Info: $info");
-    $self->redirect_to($self->url_for('detalize').$info.'.html');
+    $self->redirect_to($self->url_for('detalize').$info.'.html#'.$ad_id)
+;
 }
 
 sub liqpay {
@@ -304,12 +316,6 @@ sub vklogin {
     return 1;
 }
 
-my @a = qw/янв фев мар апр май июн июл авг сен окт ноя дек /;
-sub date {
-    my $s = shift;
-    my ($y,$m,$d) = split /-/, $s;
-    return $d.$a[$m-1];
-}
 sub human_phone {
     my $p = shift;
     my @a = map {

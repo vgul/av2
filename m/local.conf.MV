@@ -1,0 +1,16 @@
+
+kiev=>{
+    sandbox_payment=>1,
+     prod_age => 360
+}
+
+## for debug prod age
+,show_prod_demo=>1
+
+## disable textes in templates
+,comment=>1
+
+
+,log_level=>'info'
+
+

@@ -123,6 +123,7 @@ sub write_fixture {
             my $phones = join '<br />', map { human_phone($_) } keys %tmp;
 
             #say Dumper \%tmp;
+            say ADS '<a name="'.$p->{$a}->{ad_id_start}.'"></a>';
             say ADS '<tr>';
             say ADS '<td>', bold_date(
                                 real=>$p->{$a}->{idate},

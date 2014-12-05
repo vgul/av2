@@ -54,9 +54,9 @@
                 if( i2 == 'n' ) { return true };
                 // console.log("Selected: " + selected_region + " I2: " + structure_hash[v][i1][i2]);
                 if( selected_region == structure_hash[v][i1][i2] ) {
-                    console.log('Found' + ' v: ' + v + 
-                                        '. i1: ' + i1 + 
-                                        '. i2: ' + i2 + '. v2: ' + v2 );
+                    // console.log('Found' + ' v: ' + v + 
+                    //                    '. i1: ' + i1 + 
+                    //                    '. i2: ' + i2 + '. v2: ' + v2 );
                     find_depart=v;
                     find_page=v2;
                     return false;
@@ -65,8 +65,14 @@
         });
     });
 
-    console.log( "find_depart: " + find_depart );
-    console.log( "find_page: " + find_page );
+    // console.log( "find_depart: " + find_depart );
+    // console.log( "find_page: " + find_page );
+
+/*
+ $("#here38").click(function(){
+        console.log('ura38')
+    });
+*/
 
     $(function () {
         %# store liqpay button when plain feed
@@ -109,7 +115,6 @@
 % if( $self->is_demo ) {
             // generate liqpay button
             if( $(this).is("[data-bold]") ) {
-            console.log( 'here' );
             jQuery.ajax({
                 type: "GET",
                 dataType: "text",

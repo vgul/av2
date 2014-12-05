@@ -1,4 +1,6 @@
 
+%= include 'index/includes/contact_us-modal';
+
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
