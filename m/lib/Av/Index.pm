@@ -364,7 +364,7 @@ sub history {
 
     my $show_liqpay_button;
     $show_liqpay_button = 1 if $self->is_demo and 
-                      grep @ad_dates[0] eq $_, @bold_dates;
+                      grep $ad_dates[0] eq $_, @bold_dates;
 
     my $history_data = $self->render('index/fixtures/retro',
             retro=>$retro, 
