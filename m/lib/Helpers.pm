@@ -17,6 +17,11 @@ sub human_date {
     return decode('utf8',$d.$month[$m-1]);
 }
 
+sub amount {
+    my $self = shift;
+    return $self->config->{$self->region}->{amount};
+}
+
 sub sandbox_payment {
     my $self = shift;
     return $self->config->{$self->region}->{sandbox_payment};

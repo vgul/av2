@@ -83,7 +83,7 @@ sub payment_data {
     my %data = (
          payment_form_action=>'https://www.liqpay.com/api/pay'
         ,payment_public_key=>'i71804176847'
-        ,payment_amount=>'0.10'
+        ,payment_amount=>$self->amount,
         ,payment_currency=>'UAH'
         #,payment_description=>encode('cp1251','Информационные услуги')
         #,payment_description=>encode('utf8','Информационные услуги')

@@ -70,6 +70,7 @@ sub startup {
     $self->helper( index_subtext   => sub { Helpers::index_subtext(@_) } );
     $self->helper( sandbox_payment => sub { Helpers::sandbox_payment(@_) } );
     $self->helper( human_date      => sub { Helpers::human_date(@_) } );
+    $self->helper( amount          => sub { Helpers::amount(@_) } );
 
 
     #$self->app->log->debug ( "*** Start");

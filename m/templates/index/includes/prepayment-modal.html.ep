@@ -13,7 +13,7 @@
                 </div>
             </div>
                  <h4 class="modal-title" style="text-align: center;">
-<b>10 грн</b> за доступ ко <b>Всем</b> контактам во <b>Всех</b> разделах.
+<b><%= $self->amount %></b> грн за доступ ко <b>Всем</b> контактам во <b>Всех</b> разделах.
                 </h4>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
