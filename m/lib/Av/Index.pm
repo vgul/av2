@@ -15,7 +15,7 @@ my $title='Недвижимость из 1х рук/в 1е руки г.Киев'
 
 sub index {
     my $self = shift;
-    my $ip = $self->tx->remote_address;
+    my $ip = $self->remote_addr;
     $self->info("Access Index. IP: $ip");
     $self->render( title=>$title );
 }

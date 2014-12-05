@@ -43,7 +43,7 @@ has 'dbh_av2_clients' => sub {
 
 sub startup {
     my $self = shift;
-
+    $self->plugin('RemoteAddr');
 
     #$self->session(expiration=>60*60*24*14);
     #$self->session(expires=>time+60*60*24*14);
