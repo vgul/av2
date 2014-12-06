@@ -12,14 +12,14 @@ has 'dbh_av2' => sub {
         'root',
         '',
         {
-    #        mysql_enable_utf8 => 1,
+            mysql_enable_utf8 => 1,
             AutoCommit => 1,
             RaiseError=> 1,
             PrintError => 1,
             mysql_auto_reconnect => 1,
         }
     ) or die "Cannot connect: " . $DBI::errstr;
-    $self->app->dbh_av2->do('SET NAMES utf8');
+    #$self->app->dbh_av2->do('SET NAMES utf8');
     $dbh->do('SET NAMES utf8');
     return $dbh;
 };
