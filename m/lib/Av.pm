@@ -19,7 +19,7 @@ has 'dbh_av2' => sub {
             mysql_auto_reconnect => 1,
         }
     ) or die "Cannot connect: " . $DBI::errstr;
-    #$self->app->dbh_av2->do('SET NAMES utf8');
+    $self->app->dbh_av2->do('SET NAMES utf8');
     $dbh->do('SET NAMES utf8');
     return $dbh;
 };
