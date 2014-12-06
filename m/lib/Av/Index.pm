@@ -360,8 +360,8 @@ sub history {
         push @ad_dates, $a->[0];
                        #bold_date(real=>$a->[0],
                        #     human=>date($a->[0]));
-        $a->[1] = decode('utf8',$a->[1]);
-        $a->[2] = decode('utf8',$a->[2]); ## hier
+        $a->[1] = $a->[1];
+        $a->[2] = $a->[2]; ## hier
         if( $first ) {
             $phones_to_page = $a->[3]; ## phones_to_page
             undef $first;
