@@ -7,22 +7,34 @@ use Encode;
 use Text::Unidecode;
 use Data::Dumper;
 use Data::Printer;
+use Getopt::Long;
+use File::Path;
+use K116::Config;
 require 'HumanHier.pl';
 use strict;
 $|=1;
 
-my $user_source = 'av2source';
-my $password_source = 'avS12';
-my $dbname_source = 'a1_kiev';
-my $host_source = 'newskyline.org';
+#my ($subject,$from,$message);
+GetOptions(#"s=s" => \$subject,
+           #"f=s" => \$from
+);
+
+if( @ARGV != 1 or ( $ARGV[0] ne 'kiev' and $ARGV[0] ne 'dnepr' and $ARGV[0] ne 'odessa' ) ) {
+    say "You need to specify 'kiev|dnepr|odessa'";
+    exit 0;
+}
+my $region = $ARGV[0];
+my $dbname_source="a1_${region}";
+my $apoint = K116::Config->new('aviso-sources');
+my @source_dsn = $apoint->dsn("a1_$region");
 
 ## see create_site_db.sh
 my $user_target = 'root';
 my $password_target = '';
-my $dbname_target = 'av2_kiev_pre';
+my $dbname_target = "av2_${region}_pre";
 my $host_target = 'localhost';
 
-my $structure = YAML::LoadFile('Yamles/kiev.yaml');
+my $structure = YAML::LoadFile("Yamles/$region.yaml");
 my $linear_structure = linear( $structure );
 
 sub linear {
@@ -114,8 +126,8 @@ say p @re_rubrics;
 
 
 my $__group_concat_max_len=65535;
-my $dbh_source = DBI->connect("DBI:mysql:$dbname_source:$host_source",
-                                         $user_source, $password_source);
+my $dbh_source = DBI->connect(@source_dsn);
+
 $dbh_source->do('SET NAMES utf8');
 $dbh_source->do('SET session group_concat_max_len='.$__group_concat_max_len);
 
@@ -148,7 +160,7 @@ $dbh_target->do('SET NAMES utf8');
         --    ad_id = '2987799'
         GROUP BY
             synd.synd_id, synd.nhier
--- limit 50;
+ -- limit 50;
     ";
     my $sth_source1 = $dbh_source->prepare( $query1 );
     $sth_source1->execute;
@@ -181,7 +193,11 @@ $dbh_target->do('SET NAMES utf8');
 #next;
             my $hier0 = _humanHier( $h2->{hier} ); 
             my @rubrics0 = grep $hier0 =~ m/$_/, @re_rubrics;
-            die 'Abnormal matchning ' if scalar @rubrics0 > 1;
+            if( scalar @rubrics0 > 1 )  {
+                say "Hier0: $hier0";
+                say Dumper \@rubrics0;
+                die 'Abnormal matchning ' 
+            }
             if( @rubrics0 ) {
 #                say '*** ', $linear_structure->{$rubrics0[0]}->{type},' ', $hier0;
                 my ($body,$bottom) = split /\n/, $h2->{body}, 2;
@@ -210,7 +226,7 @@ $dbh_target->do('SET NAMES utf8');
             next; 
         }
         if( @tmp_data ) {
-  #      #print Dumper \@tmp_data;
+  #      #print Dumper \@tmp_data
             make_records(source_data=>\@tmp_data);
             $num_records++; 
             unless( $num_records % 50 ) {
@@ -228,7 +244,9 @@ $dbh_target->do('SET NAMES utf8');
 ## subs
 sub write_fixture {
     my $stru = shift;
-    open FIXT, '>../m/templates/index/fixtures/kiev/data_structure.html.ep';
+    my $path = "../templates/index/fixtures/${region}";
+    mkpath( $path );
+    open FIXT, ">${path}/data_structure.html.ep";
     say FIXT '    var structure_hash = {';
     my $first1=1;
     foreach my $t1 ( keys %{ $stru } ) {

@@ -4,13 +4,25 @@ use v5.10;
 use DBI;
 use Data::Dumper;
 use File::Path;
+use Getopt::Long;
+#use K116::Config;
 use strict;
 
-my $region = 'kiev';
+#my ($subject,$from,$message);
+GetOptions(#"s=s" => \$subject,
+           #"f=s" => \$from
+);
+
+if( @ARGV != 1 or ( $ARGV[0] ne 'kiev' and $ARGV[0] ne 'dnepr' and $ARGV[0] ne 'odessa' ) ) {
+    say "You need to specify 'kiev|dnepr|odessa'";
+    exit 0;
+}
+my $region = $ARGV[0];
+
 ## see create_site_db.sh
 my $user_target = 'root';
 my $password_target = '';
-my $dbname_target = 'av2_kiev';
+my $dbname_target = "av2_${region}";
 my $host_target = 'localhost';
 
 ## how many dates bold;
