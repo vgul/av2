@@ -353,7 +353,7 @@ sub history {
         @{ $self->app->dbh_av2->selectall_arrayref(
             'select idate from av2data '.
             'group by idate order by idate DESC ') };
-    @bold_dates = @dates[0..$self->config->{bold_dates}-1];
+    @bold_dates = @dates[0..$self->bold_dates-1];
     ## end calculate
     my @ad_dates;
     foreach my $a ( @{ $retro } ) {

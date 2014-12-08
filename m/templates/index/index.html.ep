@@ -96,7 +96,8 @@
 <div class="panel panel-default">
   <div class="panel-body" style="text-align: center;">
 <h3>
-Недвижимость из <b>1х</b> рук / в <b>1е</b> руки.</br>
+Недвижимость из <b>1х</b> рук / в <b>1е</b> руки.<br />
+Экономия на комиссионных.<br />
 %= $self->index_subtext
 </h3>
 </div>

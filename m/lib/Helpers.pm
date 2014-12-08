@@ -17,6 +17,11 @@ sub human_date {
     return decode('utf8',$d.$month[$m-1]);
 }
 
+sub bold_dates {
+    my $self = shift;
+    return $self->config->{$self->region}->{bold_dates};
+}
+
 sub amount {
     my $self = shift;
     return $self->config->{$self->region}->{amount};
