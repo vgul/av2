@@ -2,9 +2,17 @@
 
 set -u
 
-AP="$MAV2SOURCE"
-REGION=kiev
+EFFSCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+MY_PATH="$(dirname "${EFFSCRIPT}")/"
+APP0="$(basename $EFFSCRIPT)"
 
+TMPDIR="/tmp/$APP0-$$-$RANDOM"
+trap "[ -d \"${TMPDIR}\" ] && : echo rm -rf \"${TMPDIR}\" && rm -rf \"${TMPDIR}\" " EXIT 
+mkdir -p $TMPDIR
+
+VALID_REGIONS='kiev|dnepr|odessa'
+AP=
+REGION=
 TABLE0=
 NHIER=
 while [ $# -gt 0 ]; do
@@ -49,22 +57,41 @@ while [ $# -gt 0 ]; do
             ;;
 
         *)
+            [ -n "${REGION}" ] && {
+                echo 'Too many region specified'
+                exit 1
+            }
+            REGION=$1
+            echo "$REGION" | grep -qP "^($VALID_REGIONS)$"
+            (($?)) && {
+                echo "$0: Generate plain text with phone."
+                echo "$0: You have to specify one of '${VALID_REGIONS}'"
+                exit 1
+
+            }
+            shift
             # Non option argument
-            break # Finish for loop
+            #break # Finish for loop
             ;;
     esac
 done
 
-
-DEMO=
-[ -z "${NHIER}" ] && {
-    DEMO=1
+[ -z "${REGION}" ] && {
+    echo "$0: Generate plain text with phone."
+    echo "$0: You have to specify one of '${VALID_REGIONS}'"
+    exit
 }
 
-((TABLE0)) && {
-    echo '# n_ph  - Nuber of phones'
-    echo '# n_ad  - count(distinct body.ad_id) - number of adverts'
-    echo '# nhier - How many rubrics for phones group' 
+CONFIG_TAG=aviso-sources
+CONFIG_ITEM="a1_${REGION}"
+
+USER_SOURCE="$( k116-config ${CONFIG_FILE:+-c ${CONFIG_FILE}}   --Dump "${CONFIG_ITEM} user    "      $CONFIG_TAG)"
+PASS_SOURCE="$( k116-config ${CONFIG_FILE:+-c ${CONFIG_FILE}}   --Dump "${CONFIG_ITEM} pass    "      $CONFIG_TAG)"
+HOST_SOURCE="$( k116-config ${CONFIG_FILE:+-c ${CONFIG_FILE}}   --Dump "${CONFIG_ITEM} host    "      $CONFIG_TAG)"
+AP=" -u $USER_SOURCE -p${PASS_SOURCE} -D ${CONFIG_ITEM} -h $HOST_SOURCE "
+#echo AP $AP
+
+[ -n "${TABLE0}" -o -z "${NHIER}" ] && {
     mysql -t --raw $AP -e  "
         select
             count(distinct body.ad_id) n_ad,
@@ -83,29 +110,39 @@ DEMO=
             nhier
         ORDER BY 
             nhier
-" | sed -e 's/^/#/'
-
+    " | sed -e 's/^/#/' > $TMPDIR/table0
 }
 
-[ -n "${TABLE0}" -a -z "${NHIER}" ] && {
-    echo '#'
-    echo '#######################'
+if [ -n "${TABLE0}" ]; then
+    echo '# n_ph  - Nuber of phones'
+    echo '# n_ad  - count(distinct body.ad_id) - number of adverts'
+    echo '# nhier - How many rubrics for phones group' 
+    cat $TMPDIR/table0
+fi
+
+
+if [ -z "${NHIER}" ]; then
+   NHIER=$(cat  $TMPDIR/table0 |sort -t '|' -k 4n | grep -v '#+' | head -2 | tail -1  | sed -e 's/^\#|\s*\S*\s*|\s*\(\S*\)\s.*/\1/')
+fi
+
+
+#[ -n "${TABLE0}" -a -z "${NHIER}" ] && {
+#    echo '#'
+#    echo '#######################'
     echo '# When --table0 you have to specify --nhier N [M..]'
-    echo '#'
-    exit 0
-}
-
-
+#    echo '#'
+#    exit 0
+#}
 
 ((1)) && {
-
     echo "# ***** Phones list for NHIER='$NHIER'"
     mysql --batch --skip-column-names --raw $AP -e  "
         SELECT
             -- body.ad_id,
             phonen,
+            '${REGION}',
             MAX(body.idate),
-            CONCAT('\"aviso ${REGION}. nhiers:',nhier,', ads:',count(distinct body.ad_id),'\"' )
+            CONCAT('\"aviso nhiers:',nhier,', ads:',count(distinct body.ad_id),'\"' )
         FROM
             synd
         LEFT JOIN phones ON
@@ -135,6 +172,8 @@ phones-tread.sh - Store phones to sms table.
 =head1 SYNOPSIS
 
 phones-tread.sh [OPTIONS] [kiev|odessa|dnepr]
+
+=head1 OPTIONS
 
 =over 4
 

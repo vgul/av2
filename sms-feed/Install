@@ -1,0 +1,11 @@
+
+Install:
+
+    chmod a+x phones-thread.sh
+    sudo ln -s $(pwd)/phones-thread.sh /usr/local/bin
+
+    chmod a+x store-phone-to-send.sh
+    sudo ln -s $(pwd)/store-phone-to-send.sh /usr/local/bin
+
+    chmod a+x sms-sender.sh
+    sudo ln -s $(pwd)/sms-sender.sh /usr/local/bin 
