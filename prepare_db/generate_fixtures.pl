@@ -26,7 +26,7 @@ my $dbname_target = "av2_${region}";
 my $host_target = 'localhost';
 
 ## how many dates bold;
-my $bold_dates = 1;
+my $bold_dates = 2;
 
 my $dbh_target = DBI->connect("DBI:mysql:$dbname_target:$host_target",
                                          $user_target, $password_target);
