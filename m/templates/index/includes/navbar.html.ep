@@ -9,7 +9,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">Zvonar-Киев</a>
+      <a class="navbar-brand" href="/">Zvonar-<%= $self->Region_cyr_short %></a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->

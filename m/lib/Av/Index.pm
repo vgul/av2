@@ -11,13 +11,16 @@ use MIME::Base64 qw/encode_base64/;
 
 use strict;
 
-my $title='Недвижимость из 1х рук/в 1е руки г.Киев';
+#my $title='Недвижимость из 1х рук/в 1е руки';
 
 sub index {
     my $self = shift;
     my $ip = $self->remote_addr;
-    $self->info("Access Index. IP: $ip");
-    $self->render( title=>$title );
+    #$self->info("Access Index. IP: $ip");
+    say $self->region, " IP: $ip";
+    my $js_data_structure = $self->render('index/fixtures/'.$self->region.'/data_structure',
+                                        'mojo.to_string'=>1);
+    $self->render(js_data_structure=>$js_data_structure);
 }
 
 sub contact_us {
@@ -27,6 +30,19 @@ sub contact_us {
     $self->info('Email Sener: '. $self->param('sender') );
     $self->info('Email Text: '. $self->param('message') );
     $self->redirect_to( $self->url_for('index' ));
+}
+
+sub robots {
+    my $self = shift;
+    my $robots = $self->render( 'index/includes/robots', 'mojo.to_string'=>1 );
+    $self->render(text=>$robots, format=>'txt');
+}
+
+sub sitemap {
+    my $self = shift;
+    my $path = 'index/fixtures/'.$self->region.'/sitemap';
+    my $sitemap = $self->render( $path, 'mojo.to_string'=>1 );
+    $self->render(text=>$sitemap,format=>'xml');
 }
 
 sub detalize {
@@ -66,7 +82,7 @@ $sess_debug .= 'is_demo: '. $self->is_demo. "\n";
         #my $av2data = $self->render( $fixture.$report, 'mojo.to_string'=>1 );
         my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
 
-        $self->render( title=>$title, av2data=>decode('utf8',$av2data)
+        $self->render( av2data=>decode('utf8',$av2data)
         ,sess_debug=>$sess_debug );
 
     } else {
@@ -119,7 +135,6 @@ sub get_liqpay_button {
     my $ad_id = $self->param('ad_id_start');
     $self->info("GLB: ad_id: '$ad_id', Info: '$info'");
     my $order_id = (map{$_->[0]}@{$self->app->dbh_av2_clients->selectall_arrayref('select max(id) from orders')})[0];
-    ## KIEV kiev
     $order_id=++${order_id}.substr($self->region,0,1).'-'.substr(time,-4);
     my $insert = $self->app->dbh_av2_clients->do(
       "INSERT INTO orders SET order_id='$order_id' ".
@@ -262,33 +277,33 @@ sub oauth2callback {
     $self->redirect_to('/');
 }
 
-sub contacts {
-    my $self = shift;
-say "Me here0";
-
-    # Read access token from session
-    my $a_token = $self->session->{access_token} or die "No access token!";
-
-    #my $q = "https://www.googleapis.com/auth/userinfo.email";
-    #my $q = "https://www.google.com/m8/feeds/contacts/default/full";
-    my $q = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=$a_token";
-        #/contacts/default/full/?alt=json&max-results=3000"
-    # Get the contacts
-    my $c_res = $self->app->ua->get(
-        $q # ."/?alt=json&max-results=30"
-        #"$config->{scope}$config->{contacts_full}",
-        #, { Authorization => "Bearer $a_token" }
-    );
-
-    $self->app->log->debug ( "dump: ". Dumper $c_res );
-    
-#    die 'Error'  unless $c_res->res->is_status_class(200);
-
-#    $self->render( html=>Dumper $c_res );
-#say "UEINFO", $c_res->{userinfo.email};
-    #$self->stash( contacts => $c_res->json->{feed}{entry} );
-    $self->redirect_to('/');
-}
+#sub contacts {
+#    my $self = shift;
+#say "Me here0";
+#
+#    # Read access token from session
+#    my $a_token = $self->session->{access_token} or die "No access token!";
+#
+#    #my $q = "https://www.googleapis.com/auth/userinfo.email";
+#    #my $q = "https://www.google.com/m8/feeds/contacts/default/full";
+#    my $q = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=$a_token";
+#        #/contacts/default/full/?alt=json&max-results=3000"
+#    # Get the contacts
+#    my $c_res = $self->app->ua->get(
+#        $q # ."/?alt=json&max-results=30"
+#        #"$config->{scope}$config->{contacts_full}",
+#        #, { Authorization => "Bearer $a_token" }
+#    );
+#
+#    $self->app->log->debug ( "dump: ". Dumper $c_res );
+#    
+##    die 'Error'  unless $c_res->res->is_status_class(200);
+#
+##    $self->render( html=>Dumper $c_res );
+##say "UEINFO", $c_res->{userinfo.email};
+#    #$self->stash( contacts => $c_res->json->{feed}{entry} );
+#    $self->redirect_to('/');
+#}
 
 sub vklogin {
     my $self = shift;
@@ -341,17 +356,18 @@ sub history {
         '    ,body '. "\n".
         '    ,hier '. "\n".
         '    ,phones_to_page '. "\n".
-        'FROM av2data '. "\n".
+        'FROM '. $self->region. "\n".
         "WHERE ad_id_start = $ad_id_start ". "\n".
         "ORDER BY idate DESC ". "\n".
         '-- limit 1 '
     );
+
     my $first=1;
     my $phones_to_page;
     ## calculate dates array
     my @dates = map { $_->[0] } 
         @{ $self->app->dbh_av2->selectall_arrayref(
-            'select idate from av2data '.
+            'select idate from '. $self->region. ' '.
             'group by idate order by idate DESC ') };
     @bold_dates = @dates[0..$self->bold_dates-1];
     ## end calculate
@@ -372,7 +388,7 @@ sub history {
     $show_liqpay_button = 1 if $self->is_demo and 
                       grep $ad_dates[0] eq $_, @bold_dates;
 
-    my $history_data = $self->render('index/fixtures/retro',
+    my $history_data = $self->render('index/includes/retro',
             retro=>$retro, 
             ad_id_start=>$ad_id_start,
             bold_dates=>[@bold_dates],

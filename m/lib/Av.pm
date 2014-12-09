@@ -8,7 +8,7 @@ use Helpers;
 has 'dbh_av2' => sub {
     my $self = shift;
     my $dbh = DBI->connect(
-        "DBI:mysql:database=av2_kiev;host=127.0.0.1",
+        "DBI:mysql:database=aviso2;host=127.0.0.1",
         'root',
         '',
         {
@@ -72,6 +72,8 @@ sub startup {
     $self->helper( human_date      => sub { Helpers::human_date(@_) } );
     $self->helper( amount          => sub { Helpers::amount(@_) } );
     $self->helper( bold_dates      => sub { Helpers::bold_dates(@_) } );
+    $self->helper( Region_cyr      => sub { Helpers::Region_cyr(@_) } );
+    $self->helper( Region_cyr_short=> sub { Helpers::Region_cyr_short(@_) } );
 
 
     #$self->app->log->debug ( "*** Start");
@@ -82,16 +84,18 @@ sub startup {
     $r->get('/')->to('index#index')->name('index');
     #$r->any([qw/GET/]=>'/a/(:report)')->to('index#detalize')->name('detalize');
     $r->get('/a/(:report)',{report=>undef})->to('index#detalize')->name('detalize');
-    $r->post('contact_us')->to('index#contact_us')->name('contact_us');
+    $r->post('conn51413')->to('index#contact_us')->name('contact_us');
 
     $r->get('/history')->to('index#history')->name('history');
-    $r->get('/vklogin')->to('index#vklogin')->name('vklogin');
-    $r->get('/contacts')->to('index#contacts')->name('contacts');
-    $r->get('/oauth2callback')->to('index#oauth2callback')->name('oauth2callback');
+    #$r->get('/vklogin')->to('index#vklogin')->name('vklogin');
+    #$r->get('/contacts')->to('index#contacts')->name('contacts');
+    #$r->get('/oauth2callback')->to('index#oauth2callback')->name('oauth2callback');
     $r->get('/glb')->to('index#get_liqpay_button')->name('get_liqpay_button');
     $r->post('/liqpay')->to('index#liqpay')->name('liqpay');
 
-    $r->get('/lp1')->to('index#lp1')->name('lp1'); ## ??
+    $r->get('/sitemap.xml')->to('index#sitemap');
+    $r->get('/robots.txt')->to('index#robots');
+    #$r->get('/lp1')->to('index#lp1')->name('lp1'); ## ??
 
     ## redirect с формы API url магазина кл-сер
     ## первоочередной

@@ -22,7 +22,7 @@ my $region = $ARGV[0];
 ## see create_site_db.sh
 my $user_target = 'root';
 my $password_target = '';
-my $dbname_target = "av2_${region}";
+my $dbname_target = "aviso2";
 my $host_target = 'localhost';
 
 ## how many dates bold;
@@ -32,12 +32,12 @@ my $dbh_target = DBI->connect("DBI:mysql:$dbname_target:$host_target",
                                          $user_target, $password_target);
 $dbh_target->do('SET NAMES utf8');
 
-my @types = map { $_->[0] } @{ $dbh_target->selectall_arrayref('select type from av2data group by type') };
+my @types = map { $_->[0] } @{ $dbh_target->selectall_arrayref('select type from '.${region}.' group by type') };
 
 say Dumper \@types;
 
 ## 0, 1, 2
-my $linear = $dbh_target->selectall_arrayref('select type, linear_name_translit, linear_name from av2data group by type, linear_name_translit' );
+my $linear = $dbh_target->selectall_arrayref('select type, linear_name_translit, linear_name from '.${region}.' group by type, linear_name_translit' );
 
 my $first1=1;
 
@@ -67,14 +67,18 @@ close FIXT;
 my @list_to_generate = map {$_->[1].'-'.$_->[0]} @{ $linear };
 #say Dumper \@list_to_generate;
 
-my @dates = map { $_->[0] } @{ $dbh_target->selectall_arrayref('select idate from av2data group by idate order by idate desc ') };
+my @dates = map { $_->[0] } @{ $dbh_target->selectall_arrayref('select idate from '.${region}.' group by idate order by idate desc ') };
 say Dumper \@dates;
 
 my @bold_dates = @dates[0..$bold_dates-1];
 say Dumper \@bold_dates;
 
+
+my @for_sitemap;
 foreach my $i ( @list_to_generate ) {
     print "$i ";
+    push @for_sitemap, $i;
+    
     my $h = $dbh_target->selectall_hashref( 'SELECT'.
             ' -- *, '. "\n".
             ' ad_id_start,'. "\n".
@@ -83,7 +87,7 @@ foreach my $i ( @list_to_generate ) {
             ' phones_to_page,'. "\n".
             ' idate '. "\n".
             " -- CONCAT(linear_name_translit,'-',type) ". "\n".
-        ' FROM av2data'.  "\n".
+        ' FROM '.${region}. "\n".
         ' WHERE '."\n".
             ' CONCAT(linear_name_translit,"-",type) = \''. $i. "'\n".
             ' AND'. "\n".
@@ -92,6 +96,7 @@ foreach my $i ( @list_to_generate ) {
         ' -- ORDER BY hier DESC'. "\n".
         ' -- limit 2 '
         , 'ad_id_start');
+
     foreach my $a ( keys %{$h} ) { calculate_store_depth($h->{$a}) };
 #say Dumper $h;
 #exit 0;
@@ -100,13 +105,36 @@ foreach my $i ( @list_to_generate ) {
     write_fixture( data=>$h, fn=>$i );
 #exit 0;
 }
+write_sitemap( \@for_sitemap );
+exit 0;
 
 #####
+sub write_sitemap {
+    my $hrefs = shift;
+    my $sitemapfile = '../m/templates/index/fixtures/'.$region;
+    open SITEMAP, '>'.${sitemapfile}.'/sitemap.html.ep';
+    say SITEMAP '<?xml version="1.0" encoding="UTF-8"?>';
+    say SITEMAP '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    foreach my $file ( @{ $hrefs } ) {
+        say SITEMAP '<url>';
+        say SITEMAP '  <loc><%= $self->req->url->base %>'.
+                        '<%= $self->url_for(\'detalize\') %>'.$file.'.html</loc>';
+
+        my $lastmod = `date +'%FT%T+00:00'`; chomp $lastmod;
+        say SITEMAP '  <lastmod>'.$lastmod.'</lastmod>';
+        say SITEMAP '  <changefreq>daily</changefreq>';
+        say SITEMAP '  </url>';
+    }
+    say SITEMAP '</urlset>';
+    close SITEMAP;
+    #my $sitemapfile='../m/templates/index/fixtures/'.$region.'/data/'.$demo_prod;
+}
+
 sub calculate_store_depth {
     my $p = shift;
     my $id = $p->{ad_id_start};
     $p->{depth} = $dbh_target->selectall_arrayref(
-        "select count(*) from av2data WHERE ad_id_start=$id" )->[0]->[0];
+        "select count(*) from ${region} WHERE ad_id_start=$id" )->[0]->[0];
     #say Dumper $n;
 }
 

@@ -25,7 +25,9 @@
     <script type="text/javascript">
 
 
-%= include 'index/fixtures/kiev/data_structure';
+%# include 'index/fixtures/kiev/data_structure';
+
+    <%= $js_data_structure %>
 
     actions_array = jQuery.map(structure_hash, function(v,i) { return i; });
     // console.log(actions_array);
@@ -96,9 +98,8 @@
 <div class="panel panel-default">
   <div class="panel-body" style="text-align: center;">
 <h3>
-Недвижимость из <b>1х</b> рук / в <b>1е</b> руки.<br />
-Экономия на комиссионных.<br />
-%= $self->index_subtext
+Недвижимость из <b>1х</b> рук / в <b>1е</b> руки.
+%# $self->index_subtext
 </h3>
 </div>
 </div>

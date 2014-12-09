@@ -55,15 +55,18 @@ done
 }
 
 ROOT_ACCESS=' -u root '
-SOURCE="a1_${REGION}"
-TARGET_DB="av2_${REGION}"
-TARGET_DB_PRE="av2_${REGION}_pre"
+AV2_DB="aviso2"
+TABLE_PRE="${REGION}_pre"
+TABLE="${REGION}"
+#TARGET_DB_PRE="av2_${REGION}_pre"
 
-mysql -u root -e "drop database if exists ${TARGET_DB_PRE}"
-mysql -u root -e "create database ${TARGET_DB_PRE}"
+#mysql -u root -e "drop database if exists ${AV2_DB}"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${AV2_DB}"
 
-mysql -u root -D ${TARGET_DB_PRE} -e "
-CREATE TABLE av2data (
+mysql -u root -D ${AV2_DB} -e "DROP TABLE IF EXISTS ${TABLE_PRE}"
+
+mysql -u root -D ${AV2_DB} -e "
+CREATE TABLE IF NOT EXISTS ${TABLE_PRE} (
     ad_id          int(6) NOT NULL,
     cnt            INT(2) NOT NULL,
     ad_id_start    int(6) NOT NULL,
@@ -79,13 +82,13 @@ CREATE TABLE av2data (
     num            INT(2) NOT NULL,
     page           INT(3) NOT NULL
     -- PRIMARY KEY (ad_id)
-) DEFAULT CHARSET=utf8 ;
+) DEFAULT CHARSET=utf8 ENGINE=MyISAM;
 "
 
-mysql -u root -D ${TARGET_DB_PRE} -e 'describe av2data'
+mysql -u root -D ${AV2_DB} -e "describe ${TABLE_PRE}"
 
 ## set param for SOURCE_DB, TARGET_DB, see README
-time perl normalize_db.pl $REGION
+time perl normalize_db.pl --region $REGION --dbname ${AV2_DB} --table-pre ${TABLE_PRE}
 CODE=$?
 echo CODE $CODE
 ((CODE)) && {
@@ -93,10 +96,10 @@ echo CODE $CODE
     exit 1
 }
 
-mysql -u root -D ${TARGET_DB_PRE} -e 'select count(*) from av2data  '
-
-mysql -u root -e "create database if not exists ${TARGET_DB}"
-mysqldump -u root ${TARGET_DB_PRE} | mysql -u root -D ${TARGET_DB}
+mysql -u root -D ${AV2_DB} -e "select count(*) from ${TABLE_PRE}"
+mysql -u root -D ${AV2_DB} -e "drop table if exists ${TABLE}"
+mysql -u root -D ${AV2_DB} -e "rename table ${TABLE_PRE} to ${TABLE}"
+#mysqldump -u root ${TARGET_DB_PRE} | mysql -u root -D ${TARGET_DB}
 
 exit
 
@@ -122,10 +125,6 @@ Print a brief help message and exits.
 =item B<--man>
 
 Prints the manual page and exits.
-
-=item B<--example1>
-
-Show main data table for analyse
 
 =back
 

@@ -9,6 +9,19 @@ sub index_subtext {
     #'Один раз в неделю.'
 }
 
+sub Region_cyr {
+    my $self = shift;
+    return $self->config->{$self->region}->{name};
+}
+
+sub Region_cyr_short {
+    my $self = shift;
+    return $self->config->{$self->region}->{name_short} if 
+        exists $self->config->{$self->region}->{name_short};;
+    return $self->config->{$self->region}->{name};
+    
+}
+
 my @month = qw/янв фев мар апр май июн июл авг сен окт ноя дек /;
 sub human_date {
     my $self = shift;
@@ -52,6 +65,13 @@ sub is_prod {
 
 sub region {
     my $self = shift;
+    my $host = $self->req->url->base->host;
+    foreach my $r ( qw/kiev dnepr odessa/ ) {
+        my $re = $self->config->{$r}->{match};
+        if( $host =~ m/$re/ ) {
+            return $r;
+        }
+    }
     return 'kiev';
 }
 

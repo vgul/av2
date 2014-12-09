@@ -2,6 +2,8 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
+    <meta name="description" content="<%= $self->Region_cyr %> недвижимость без комиссии; без посредников; первые руки; 1е руки; Квартиры Дома участки Офисы Коммерческая недвижимость; Продам Куплю Сниму Арендую Сдам Обменяю" />
+
     <!--
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     -->
@@ -13,7 +15,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title><%= $title %></title>
+    <title>Недвижимость из 1х рук / в 1е руки г. <%= $self->Region_cyr_short %></title>
 
     <!-- Bootstrap core CSS -->
     <link href="<%=$self->req->url->base%>/css/bootstrap3.css" rel="stylesheet">

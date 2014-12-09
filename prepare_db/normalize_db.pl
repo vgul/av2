@@ -14,16 +14,17 @@ require 'HumanHier.pl';
 use strict;
 $|=1;
 
-#my ($subject,$from,$message);
-GetOptions(#"s=s" => \$subject,
-           #"f=s" => \$from
+my ($region,$table_pre,$dbname_target);
+GetOptions("region=s" => \$region,
+           "table-pre=s" => \$table_pre,
+           "dbname=s" => \$dbname_target
 );
 
-if( @ARGV != 1 or ( $ARGV[0] ne 'kiev' and $ARGV[0] ne 'dnepr' and $ARGV[0] ne 'odessa' ) ) {
-    say "You need to specify 'kiev|dnepr|odessa'";
-    exit 0;
-}
-my $region = $ARGV[0];
+#if( @ARGV != 1 or ( $ARGV[0] ne 'kiev' and $ARGV[0] ne 'dnepr' and $ARGV[0] ne 'odessa' ) ) {
+#    say "You need to specify 'kiev|dnepr|odessa'";
+#    exit 0;
+#}
+#my $region = $ARGV[0];
 my $dbname_source="a1_${region}";
 my $apoint = K116::Config->new('aviso-sources');
 my @source_dsn = $apoint->dsn("a1_$region");
@@ -31,7 +32,7 @@ my @source_dsn = $apoint->dsn("a1_$region");
 ## see create_site_db.sh
 my $user_target = 'root';
 my $password_target = '';
-my $dbname_target = "av2_${region}_pre";
+#my $dbname_target = "aviso2";
 my $host_target = 'localhost';
 
 my $structure = YAML::LoadFile("Yamles/$region.yaml");
@@ -298,7 +299,7 @@ sub insert_to_target_db() {
     my $ad_id_start = $p{ad_id_start};
 
 #say Dumper $a;
-    my $query = 'INSERT INTO av2data SET '."\n".
+    my $query = "INSERT INTO ${table_pre} SET "."\n".
         'ad_id='. $a->{ad_id}."\n".
         ',cnt='. $cnt . "\n".
         ',ad_id_start='. $ad_id_start ."\n".
