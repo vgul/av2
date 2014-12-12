@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+
+%= include 'index/includes/head0';
+
+    <style>
+/*
+    .row > div {
+            background-color: #dedef8;
+            box-shadow: inset 1px -1px 1px #444, inset -1px 1px 1px #444;
+        }
+*/
+/*
+    .table td {
+        /* border: black solid 1px; *
+        margin: 0px;
+        padding: 0px;
+        line-height: 0px;
+    }
+*/
+
+    </style>
+
+
+</head>
+<body>
+
+%= include 'index/includes/navbar';
+
+<div class="container">
+
+<div class="panel panel-default">
+  <div class="panel-body" style="text-align: left;">
+
+    <%= $sitemap %>
+
+  </div> <!-- panel-body -->
+</div> <!-- panel -->
+
+
+</div> <!-- container-fluid -->
+
+<div style="display: none">
+</div>
+
+%# myModalLabel-select1 %
+%= include 'index/includes/select1-modal';
+
+%= include 'index/includes/foot0';
+
+</body>
+</html>
+
