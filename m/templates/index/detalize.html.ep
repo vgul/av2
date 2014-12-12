@@ -102,7 +102,7 @@
             var prepared0 = jQuery.map( regions0, function(v,i) {
                 if( v['h'] !== undefined ) {
                     // console.log( 'V: ' + v['h'] );
-                    return '<li>ff <a href="/a/' + 
+                    return '<li><a href="/a/' + 
                             v['h'] +  '.html">' + i + '</a></li>';
                 }
             });

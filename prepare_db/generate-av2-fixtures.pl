@@ -65,7 +65,7 @@ my $linear = $dbh_target->selectall_arrayref(
         'group_concat(distinct idate),'. "\n". # 3
         'count(distinct hier),        '. "\n". # 4
         'group_concat(distinct hier SEPARATOR \'|\' ) '. "\n". # 5
-    'FROM dnepr '. "\n".
+    'FROM '. $region . "\n".
     'GROUP by type, linear_name_translit' );
     
 
@@ -278,6 +278,7 @@ sub write_files {
     my $hash = shift;
     my $path = $my_absolute_path.'/../m/templates/index/fixtures/'.$region;
     mkpath( $path );
+
     open BEG1, ">${path}".'/start1.html.ep';
     open JS_S, ">${path}".'/data_structure.html.ep';
     open MAP,  ">${path}".'/sitemap.html.ep';
