@@ -3,7 +3,7 @@ Sitemap: <%= $self->req->url->base->to_abs %>/sitemap.xml
 User-agent: *
 Disallow: /conn51413
 Disallow: /history
-Disallow: /blb
+Disallow: /glb
 Disallow: /liqpay
 Disallow: /after_liqpay
 Disallow: /mojo
@@ -13,7 +13,7 @@ User-agent: Yandex
 Host: <%= $self->req->url->base->host %>
 Disallow: /conn51413
 Disallow: /history
-Disallow: /blb
+Disallow: /glb
 Disallow: /liqpay
 Disallow: /after_liqpay
 Disallow: /mojo
