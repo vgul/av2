@@ -6,6 +6,8 @@ Disallow: /history
 Disallow: /blb
 Disallow: /liqpay
 Disallow: /after_liqpay
+Disallow: /mojo
+Disallow: /favicon.ico
 
 User-agent: Yandex
 Host: <%= $self->req->url->base->host %>
@@ -14,3 +16,5 @@ Disallow: /history
 Disallow: /blb
 Disallow: /liqpay
 Disallow: /after_liqpay
+Disallow: /mojo
+Disallow: /favicon.ico
