@@ -16,6 +16,9 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         <li><a href="<%= url_for 'index' %>">Главная</a></li>
+% if ( $self->config->{comment} ) {
+        <li><a href="<%= url_for 'sitemap' %>">Карта сайта</a></li>
+% }
       </ul>
 <!--
       <form class="navbar-form navbar-left" role="search">
@@ -36,6 +39,8 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Сервисы <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a data-toggle="modal" data-target="#contact_us" href="#">Написать нам</a></li>
+            <li><a href="<%= url_for 'sitemap' %>">Карта сайта</a></li>
+            <li class="divider"></li>
             <li><a href="#">Просмотреть баланс</a></li>
 % if( $self->config->{comment} ) {
 <!--

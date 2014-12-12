@@ -71,15 +71,16 @@
         });
     };
 
+    /*
     function show_as_href(index) {
         var save_text = $('#'+index).text();
         // console.log( 'Here: ' + 
         var num = Object.keys(structure_hash[index]).length;
         jQuery('#'+index).html("<a href=\"#\" title=\"Количество подразделов:"+num+"\">"+save_text+"</a>");
-    };
+    };*/
 
     $(function () {
-        $.each(actions_array,function(v,index){show_as_href(index)});
+        // $.each(actions_array,function(v,index){show_as_href(index)});
         $.each(actions_array,function(k,action_id) {show_regions0(k,action_id)});
     });
 
@@ -91,9 +92,12 @@
 
 %= include 'index/includes/navbar';
 
+
 <div class="container">
 
-%= include 'index/includes/begin1';
+<%# url_for "detalize" %>
+<!-- second -->
+<%= $start1 %>
 
 <div class="panel panel-default">
   <div class="panel-body" style="text-align: center;">
@@ -104,6 +108,10 @@
 </div>
 </div>
 </div> <!-- container-fluid -->
+
+<div style="display: none">
+<h1><a href="<%= url_for 'sitemap' %>">Карта сайта</a></h1>
+</div>
 
 %# myModalLabel-select1 %
 %= include 'index/includes/select1-modal';

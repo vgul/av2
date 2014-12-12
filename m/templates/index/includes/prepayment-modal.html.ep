@@ -16,7 +16,7 @@
 <b><%= $self->amount %></b> грн за доступ ко <b>Всем</b> контактам во <b>Всех</b> разделах.
                 </h4>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
                 <!--
                 <button type="button" class="btn btn-primary">Save changes</button>
                 -->

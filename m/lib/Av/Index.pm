@@ -20,7 +20,11 @@ sub index {
     say $self->region, " IP: $ip";
     my $js_data_structure = $self->render('index/fixtures/'.$self->region.'/data_structure',
                                         'mojo.to_string'=>1);
-    $self->render(js_data_structure=>$js_data_structure);
+    my $start1 = $self->render('index/fixtures/'.$self->region.'/start1',
+                                        'mojo.to_string'=>1);
+    $self->render(js_data_structure=>$js_data_structure, 
+                   meta_description=>undef,
+                    start1=>$start1 );
 }
 
 sub contact_us {
@@ -32,15 +36,23 @@ sub contact_us {
     $self->redirect_to( $self->url_for('index' ));
 }
 
+sub sitemap {
+    my $self = shift;
+    my $generated = 'index/fixtures/'.$self->region.'/sitemap';
+    my $sitemap = $self->render( $generated, 'mojo.to_string'=>1 );
+    $self->render( meta_description=>undef,
+                    sitemap=>$sitemap );
+}
+
 sub robots {
     my $self = shift;
     my $robots = $self->render( 'index/includes/robots', 'mojo.to_string'=>1 );
     $self->render(text=>$robots, format=>'txt');
 }
 
-sub sitemap {
+sub sitemap_xml {
     my $self = shift;
-    my $path = 'index/fixtures/'.$self->region.'/sitemap';
+    my $path = 'index/fixtures/'.$self->region.'/sitemap.xml';
     my $sitemap = $self->render( $path, 'mojo.to_string'=>1 );
     $self->render(text=>$sitemap,format=>'xml');
 }
@@ -79,11 +91,23 @@ $sess_debug .= 'is_demo: '. $self->is_demo. "\n";
 
     if( -f $fixtures_path.$fixture.$report.'.html.ep') {
         ### ??? WHY RENDERING ???
-        #my $av2data = $self->render( $fixture.$report, 'mojo.to_string'=>1 );
-        my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
+        my $av2data = $self->render( $fixture.$report, 'mojo.to_string'=>1 );
+        #my $av2data = `cat ${fixtures_path}${fixture}${report}.html.ep`;
 
-        $self->render( av2data=>decode('utf8',$av2data)
-        ,sess_debug=>$sess_debug );
+        my $meta_description = 
+            $self->render( 'index/fixtures/'.$self->region.'/data/descriptions/'.$report,
+                                'mojo.to_string'=>1 );
+        chomp( $meta_description );
+        #$self->debug( $meta_description );
+        #$self->render( av2data=>decode('utf8',$av2data)
+
+        my $js_data_structure = $self->render('index/fixtures/'.$self->region.
+                '/data_structure', 'mojo.to_string'=>1);
+ 
+        $self->render( av2data=>$av2data, 
+                        meta_description=>$meta_description,
+                        js_data_structure => $js_data_structure,
+                        sess_debug=>$sess_debug );
 
     } else {
         $self->redirect_to( $self->url_for('index' ));

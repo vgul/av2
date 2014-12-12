@@ -6,6 +6,7 @@ EFFSCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
 MY_PATH="$(dirname "${EFFSCRIPT}")/"
 APP0="$(basename $EFFSCRIPT)"
 
+VALID_DOMENS='kiev|dp|od'
 TMPDIR="/tmp/$APP0-$$-$RANDOM"
 trap "[ -d \"${TMPDIR}\" ] && : echo rm -rf \"${TMPDIR}\" && rm -rf \"${TMPDIR}\" " EXIT 
 mkdir -p $TMPDIR
@@ -14,13 +15,14 @@ ATOM_USER=box711@mail.ru
 ATOM_PASS=vladA17
 SUBJECT=Zvonar
 
-
+TEST_PHONE="+380954800001"
 AP_SMS='-u root -D av2_clients '
 TABLE=sms
 
 SEND_URL='http://atompark.com/members/sms/xml.php'
 FILETEXT=
 DO=
+COUNT=
 while [ $# -gt 0 ]; do
     case "$1" in
 
@@ -33,7 +35,10 @@ while [ $# -gt 0 ]; do
             pod2usage -verbose 1 "$0"
             exit 1
             ;;
-
+        --count)
+            COUNT=$2
+            shift 2
+            ;;
         --do)
             DO=1
             shift
@@ -63,6 +68,42 @@ while [ $# -gt 0 ]; do
             ;;
     esac
 done
+
+
+echo mysql ${AP_SMS} -e "'select ... from sms limit 1'"
+mysql ${AP_SMS} -e "
+    select 
+        IF( count(*)=1, CONCAT('p',phone), count(*) ) as cnt_ph,
+        MAX(sent),
+        MIN(sent),
+        status,
+        region 
+    FROM sms 
+    GROUP BY status, region "
+
+[ -z "${DO}" ] && {
+    echo -n "Will send from $TEST_PHONE. Specify --do option (--count N too )"
+}
+
+if ((1)); then
+    echo
+    while [ 0 ]; do
+        read -p "Proceed send process ? [Yes/n]: " CHOICE
+        shopt -s nocasematch
+        case $CHOICE in
+            y|yes)
+                #SOME=1
+                break;
+                ;;
+            n|no)
+                echo 'Exiting'
+                exit 0
+                ;;
+        esac
+        shopt -u nocasematch
+    done
+fi
+
 #TEXT=
 #    echo 'Text [ $0 filename ] not specified'
 #    exit 1
@@ -90,9 +131,11 @@ while [ $EXIT -eq 0 ] ; do
                 CONCAT(phone,' ',region,' ',stored)
             FROM ${TABLE} 
             WHERE 
-                status IS NULL
+                (status IS NULL
                 AND credits IS NULL
-                AND amount IS NULL
+                AND amount IS NULL)
+                OR
+                status=-3
             ORDER BY 
                 stored ASC
             limit 1
@@ -112,14 +155,20 @@ while [ $EXIT -eq 0 ] ; do
         #echo STORED=$STORED
         PH="+380${PH0}"
     else
-        PH='+380954800001'
-        REGION=kiev
+        PH=$TEST_PHONE
+        REGION=${REGION:-kiev}
         echo "PH=$PH REGION=$REGION "
     fi
 
 
-    printf -v BODY "$TEMPLATE" $REGION
-    #echo "Text: $BODY"
+    REGION_DOMEN=$(echo $REGION | sed -e 's/^dnepr$/dp/' -e 's/^odessa$/od/' )
+    echo "$REGION_DOMEN" | grep -qP "^($VALID_DOMENS)$"
+    (($?)) && {
+        echo "Skiped. None of ${VALID_DOMENS} valid domens"
+        exit
+    }
+    printf -v BODY "$TEMPLATE" $REGION_DOMEN
+    #echo "$PH Text: $BODY"
     XML="
     <SMS>
         <operations>
@@ -176,6 +225,11 @@ while [ $EXIT -eq 0 ] ; do
         ; select row_count() ")"
         ((SENT_CNT+=RES))
         echo "$SENT_CNT [$STATUS] PH=$PH REGION=$REGION " CREDITS=$CREDITS AMOUNT=$AMOUNT
+
+        [ -n "${COUNT}" ] && ((SENT_CNT>=COUNT)) && {
+            echo "Count value $COUNT reached."
+            break
+        }
     else
         echo 'Test invoke finished'
         break

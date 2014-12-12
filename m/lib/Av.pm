@@ -83,7 +83,8 @@ sub startup {
 # here
     $r->get('/')->to('index#index')->name('index');
     #$r->any([qw/GET/]=>'/a/(:report)')->to('index#detalize')->name('detalize');
-    $r->get('/a/(:report)',{report=>undef})->to('index#detalize')->name('detalize');
+    $r->get('/a/:report',{report=>undef})->to('index#detalize')->name('detalize');
+    #$r->get('/a')->to('index#up_detalize')->name('up_detalize');
     $r->post('conn51413')->to('index#contact_us')->name('contact_us');
 
     $r->get('/history')->to('index#history')->name('history');
@@ -93,7 +94,8 @@ sub startup {
     $r->get('/glb')->to('index#get_liqpay_button')->name('get_liqpay_button');
     $r->post('/liqpay')->to('index#liqpay')->name('liqpay');
 
-    $r->get('/sitemap.xml')->to('index#sitemap');
+    $r->get('/sitemap.xml')->to('index#sitemap_xml');
+    $r->get('/sitemap')->to('index#sitemap');
     $r->get('/robots.txt')->to('index#robots');
     #$r->get('/lp1')->to('index#lp1')->name('lp1'); ## ??
 

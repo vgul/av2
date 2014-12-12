@@ -11,6 +11,7 @@ PHONE=
 SCRAPED=
 COMMENT=
 ILLEGAL=
+SOURCE=
 TABLE=sms
 [ ! -t 0 ] && STDIN=1
 
@@ -25,6 +26,21 @@ while [ $# -gt 0 ]; do
         --man)
             pod2usage -verbose 1 "$0"
             exit 1
+            ;;
+
+        --scraped)
+            SCRAPED=$2
+            shift 2
+            ;;
+
+        --region)
+            REGION=$2
+            shift 2
+            ;;
+
+        --source)
+            SOURCE=$2
+            shift 2
             ;;
 
         --comment|-c)
@@ -68,7 +84,7 @@ done
 function insert {
     local PHONE=$1
     local REGION=${2}
-    local SCRAPED=${3:-}
+    local SCRAPED="${3:-}"
     local SOURCE="${4:-}"
     #echo "Insert: $PHONE SCRAPED=$SCRAPED SOURCE=$SOURCE"
     mysql $AP_SMS -e "
@@ -79,6 +95,21 @@ function insert {
             ${SCRAPED:+,scraped='${SCRAPED}'}
             ${SOURCE:+,source='${SOURCE}'}
     "
+}
+
+function have_to_insert {
+    local PH="$1"
+    RET="$(mysql -N -B $AP_SMS -e "
+        SELECT 
+            sent
+        FROM
+            ${TABLE}
+        WHERE 
+            phone=${PH}
+    ")"
+    echo $RET
+    [ -z "${RET}" ] && return 1
+    return 0
 }
 
 ((STDIN)) && {
@@ -98,10 +129,13 @@ function insert {
         case "${#SPACES}" in
 
             0)
-                echo "You have to specify PHONE REGION"
-                exit 0
-                #echo 1
-                PHONE=${LINE%%[[:space:]]*}
+                if [ -z "${REGION}" ]; then
+                    echo "You have to specify PHONE REGION"
+                    exit 0
+                else
+                    #echo 1
+                    PHONE=${LINE%%[[:space:]]*}
+                fi
                 ;;
             1)
                 #echo 1
@@ -146,7 +180,14 @@ function insert {
             continue
         }
         ((COUNT++))
-        insert $PHONE $REGION $SCRAPED "$SOURCE"
+        STORED=$(have_to_insert $PHONE)
+        CODE=$?
+        if ((CODE)); then
+            echo insert PH=$PHONE REGION=$REGION SCRAPED=$SCRAPED SOURCE=$SOURCE
+            insert $PHONE $REGION "$SCRAPED" "$SOURCE"
+        else
+            echo "$PHONE Skip. Already stored: '${STORED}'"
+        fi
     done
     echo "${COUNT} count"
     ((ILLEGAL_COUNT)) && echo "${ILLEGAL_COUNT} illegal count"

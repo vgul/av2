@@ -24,14 +24,29 @@
         margin-bottom: 0px;
     }
 
+    .table, .table-condensed, .table-condensed-detalize {
+        font-size: 12px;
+    }
+
     .hr-between-textes {
         margin-top: 3px;
         margin-bottom: 3px;
     }
+    
+    .table > tbody > tr > td.detalize-top {
+        border-top: none;
+    }
+
+    .table > tbody > tr > td {
+       margin: 0px;
+    }
+
     </style>
     <script type="text/javascript">
 
-    %= include 'index/fixtures/kiev/data_structure';
+    %# include 'index/fixtures/kiev/data_structure';
+
+    <%= $js_data_structure %>
 
     actions_array = jQuery.map(structure_hash, function(v,i) { return i; });
     // console.log(actions_array);
@@ -40,7 +55,8 @@
     // console.log( pathname );
                                         // HARDCODED
     var selected_region =  pathname.match(/\/a\/(.*).html$/ ); selected_region = selected_region[1];
-    // console.log(selected_region);
+    //console.log('Selected region: ' + selected_region);
+
 
     var find_depart;
     var find_page;
@@ -52,11 +68,11 @@
             // console.log('Before B' + i1);
             $.each(structure_hash[v][i1],function(i2,v2) {
                 if( i2 == 'n' ) { return true };
-                // console.log("Selected: " + selected_region + " I2: " + structure_hash[v][i1][i2]);
+                 // console.log("Selected: " + selected_region + " I2: " + structure_hash[v][i1][i2]);
                 if( selected_region == structure_hash[v][i1][i2] ) {
-                    // console.log('Found' + ' v: ' + v + 
-                    //                    '. i1: ' + i1 + 
-                    //                    '. i2: ' + i2 + '. v2: ' + v2 );
+                     //console.log('Found' + ' v: ' + v + 
+                     //                   '. i1: ' + i1 + 
+                     //                   '. i2: ' + i2 + '. v2: ' + v2 );
                     find_depart=v;
                     find_page=v2;
                     return false;
@@ -65,16 +81,76 @@
         });
     });
 
+%# if( $self->config->{comment} ) {
     // console.log( "find_depart: " + find_depart );
     // console.log( "find_page: " + find_page );
-
 /*
- $("#here38").click(function(){
+    $("#here38").click(function(){
         console.log('ura38')
     });
+    console.log ("Up: <%= url_for('detalize') %>" );
 */
+%# } # comment
+
+
+    // var action_id = find_depart;
+    function show_menu(obj) {
+        jQuery('#select1').modal('show');
+        var regions0 = structure_hash[find_depart];
+        var title = $('#'+find_depart).text();
+        if (typeof regions0 !== 'undefined' ) {
+            var prepared0 = jQuery.map( regions0, function(v,i) {
+                if( v['h'] !== undefined ) {
+                    // console.log( 'V: ' + v['h'] );
+                    return '<li>ff <a href="/a/' + 
+                            v['h'] +  '.html">' + i + '</a></li>';
+                }
+            });
+            var str0 = "<ul>" + prepared0.join('') + "</ul>";
+            // console.log( str0 );
+            jQuery("#select1-show").html(str0);
+        }
+    };
 
     $(function () {
+        jQuery('#'+find_depart).click( function(obj) {show_menu(obj)});
+/*
+function() {
+            console.log( 'Menu clicked' )
+            jQuery('#select1').modal('show');
+
+            var title = $('#'+action_id).text();
+
+            var regions0 = structure_hash[action_id];
+            jQuery("#myModalLabel-select1").html(title);
+            if (typeof regions0 !== 'undefined' ) {
+
+                // TODO HERE ****
+                var prepared0 = jQuery.map( regions0, function(v,i) {
+                    if( v['h'] !== undefined ) {
+
+                        console.log( 'Here: ' + v['h'] );
+                        return( 
+                            '<li>ff <a href="/a/'
+                            + 'zzz' +  '.html">' + i + '</a></li>' );
+                    } else {
+                        return( '<li> zz' + i + '</li>' );
+                    }
+                });
+                var str0 = "<ul>" + prepared0.join('') + "</ul>";
+                // console.log( 'Here: ' + str0 );
+                // jQuery( "#" + action_id ).click( function() {
+                    jQuery("#select1-show").html(str0);
+                //});
+            } else {
+                console.log( 'Abnormal' );
+                // jQuery( "#" + action_id ).click( function() {
+                    jQuery("#select1-show").html( 'fff' );
+                // });
+            }
+        });
+*/
+
         %# store liqpay button when plain feed
         $("a[data-target='#ppay']").click(function(){
             var ad_id_start = $(this).attr('href');
@@ -85,7 +161,7 @@
                 type: "GET",
                 dataType: "text",
                 // contentType: 'text/text; charset=utf8',
-                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page +
+                url: "<%== url_for 'get_liqpay_button' %>?info="+selected_region +
                             '&ad_id_start=' + ad_id_start
             }).done(function( response ) {
                 // console.log('ajax: ' + response );
@@ -97,10 +173,12 @@
         $("a[data-target='#adhistory']").click(function(){
             var ad_id_start = $(this).attr('href');
             ad_id_start = ad_id_start.replace('#','');
-            console.log( 'show_history: ' + ad_id_start  );
+            // console.log( 'show_history: ' + ad_id_start  );
             // $('#myModal').modal('backdrop');
             jQuery("#ad_id_start").text(ad_id_start);
 
+            // reset before loading
+            $('#adhistory-show').html( '&nbsp;' );
             // get data for history
             jQuery.ajax({
                 type: "GET",
@@ -113,20 +191,21 @@
             });
 
 % if( $self->is_demo ) {
+            console.log('history pay clicked');
             // generate liqpay button
             if( $(this).is("[data-bold]") ) {
-            jQuery.ajax({
-                type: "GET",
-                dataType: "text",
-                url: "<%== url_for 'get_liqpay_button' %>?info="+find_page+
+                jQuery.ajax({
+                    type: "GET",
+                    dataType: "text",
+                    url: "<%== url_for 'get_liqpay_button' %>?info="+selected_region+
                             '&ad_id_start=' + ad_id_start
-            }).done(function( response ) {
-                // console.log('ajax: ' + response );
-                $('#liqpay_button_in_history').html( response );
-            });
+                }).done(function( response ) {
+                    // console.log('ajax: ' + response );
+                    $('#liqpay_button_in_history').html( response );
+                });
             } else {
                 // reset filled data (maybe)
-                $('#liqpay_button_in_history').text( '' );
+            //    $('#liqpay_button_in_history').text( '' );
             }
 % }
         });
@@ -138,6 +217,7 @@
 <body>
 
 %= include 'index/includes/navbar';
+
 % if( $sess_debug ) {
 <pre>
 %== $sess_debug
@@ -146,8 +226,14 @@
 
 <div class="container">
 
+%# url_for "detalize", controller=>index action=>'/' 
+
+<%# $meta_description %>
+
 <%== $av2data %>
 </div> <!-- container-fluid -->
+
+%= include 'index/includes/select1-modal';
 
 <%# history_show %>
 %= include 'index/includes/history-modal';

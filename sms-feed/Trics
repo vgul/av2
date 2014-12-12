@@ -1,0 +1,6 @@
+
+mysql -B  -N    -u root -D aviso2 -e "select distinct phones_to_page from kiev where type='kv_kup' "
+
+
+cat dn | store-phone-to-send.sh --region dnepr --source 'aviso dnepr nhier:1 kv_kup'
+
