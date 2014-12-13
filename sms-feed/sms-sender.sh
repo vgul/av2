@@ -263,9 +263,9 @@ Print a brief help message and exits.
 
 Prints the manual page and exits.
 
-=item B<--opt1>
+=item B<--count N>
 
-Describe
+How many sms to send
 
 =item B<--opt2 [I [,J,...]] >
 
