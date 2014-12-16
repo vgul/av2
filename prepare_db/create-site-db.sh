@@ -1,4 +1,4 @@
-#!/bin/perl
+#!/bin/bash
 
 set -u 
 
