@@ -2,6 +2,9 @@
 
 set -u 
 
+EFFSCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+MY_PATH="$(dirname "${EFFSCRIPT}")/"
+
 VALID_REGIONS='kiev|dnepr|odessa'
 
 REGION=
@@ -87,6 +90,7 @@ CREATE TABLE IF NOT EXISTS ${TABLE_PRE} (
 
 mysql -u root -D ${AV2_DB} -e "describe ${TABLE_PRE}"
 
+cd $MY_PATH
 ## set param for SOURCE_DB, TARGET_DB, see README
 time perl normalize_db.pl --region $REGION --dbname ${AV2_DB} --table-pre ${TABLE_PRE}
 CODE=$?

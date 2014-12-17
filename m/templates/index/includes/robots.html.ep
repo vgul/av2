@@ -8,6 +8,8 @@ Disallow: /liqpay
 Disallow: /after_liqpay
 Disallow: /mojo
 Disallow: /favicon.ico
+Disallow: /css
+Disallow: /morbo
 
 User-agent: Yandex
 Host: <%= $self->req->url->base->host %>
@@ -18,3 +20,5 @@ Disallow: /liqpay
 Disallow: /after_liqpay
 Disallow: /mojo
 Disallow: /favicon.ico
+Disallow: /css
+Disallow: /morbo
