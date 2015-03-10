@@ -114,6 +114,7 @@ function have_to_insert {
 
 ((STDIN)) && {
     COUNT=0
+    SKIPPED=0
     ILLEGAL_COUNT=0
     while read -r LINE ; do
         echo $LINE | grep -qP  '^\s*#'
@@ -187,9 +188,10 @@ function have_to_insert {
             insert $PHONE $REGION "$SCRAPED" "$SOURCE"
         else
             echo "$PHONE Skip. Already stored: '${STORED}'"
+            ((SKIPPED++))
         fi
     done
-    echo "${COUNT} count"
+    echo "Prepared $((COUNT-SKIPPED)). Skipped: ${SKIPPED}. Total: ${COUNT}."
     ((ILLEGAL_COUNT)) && echo "${ILLEGAL_COUNT} illegal count"
 }
 

@@ -8,13 +8,24 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 
             </div>
+
+
+            <br />
+
+%= include 'index/includes/text_before_liqpay_button' ,free_selected_util=>$free_selected_until ,next_update=>$next_update
+
+
             <div class="modal-body">
                 <div class="te" id='liqpay_button' style="text-align: center;">
                 </div>
             </div>
                  <h4 class="modal-title" style="text-align: center;">
+
 <b><%= $self->amount %></b> грн за доступ ко <b>Всем</b> контактам во <b>Всех</b> разделах.
                 </h4>
+
+%= include 'index/includes/text_after_liqpay_button' ,permitted_days=>$permitted_days
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
                 <!--

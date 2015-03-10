@@ -11,11 +11,22 @@ TMPDIR="/tmp/$APP0-$$-$RANDOM"
 trap "[ -d \"${TMPDIR}\" ] && : echo rm -rf \"${TMPDIR}\" && rm -rf \"${TMPDIR}\" " EXIT 
 mkdir -p $TMPDIR
 
-ATOM_USER=box711@mail.ru
-ATOM_PASS=vladA17
+
+# load secure data
+[ -f "${MY_PATH}/sms-sender.data.sh.inc" ] && {
+    source "${MY_PATH}/sms-sender.data.sh.inc"
+}
+
+[ -z "${ATOM_USER:-}" -o \
+  -z "${ATOM_PASS:-}" -o \
+  -z "${TEST_PHONE:-}" ] && {
+    echo "ATOM_USER/ATOM_PASS/TEST_PHONE variable[s] not set"
+    exit 1
+}
+
+
 SUBJECT=Zvonar
 
-TEST_PHONE="+380954800001"
 AP_SMS='-u root -D av2_clients '
 TABLE=sms
 
@@ -23,6 +34,7 @@ SEND_URL='http://atompark.com/members/sms/xml.php'
 FILETEXT=
 DO=
 COUNT=
+SEND_REGION=
 while [ $# -gt 0 ]; do
     case "$1" in
 
@@ -34,6 +46,10 @@ while [ $# -gt 0 ]; do
         --man)
             pod2usage -verbose 1 "$0"
             exit 1
+            ;;
+        --region)
+            SEND_REGION=$2
+            shift 2
             ;;
         --count)
             COUNT=$2
@@ -84,7 +100,6 @@ mysql ${AP_SMS} -e "
 [ -z "${DO}" ] && {
     echo -n "Will send from $TEST_PHONE. Specify --do option (--count N too )"
 }
-
 if ((1)); then
     echo
     while [ 0 ]; do
@@ -131,15 +146,17 @@ while [ $EXIT -eq 0 ] ; do
                 CONCAT(phone,' ',region,' ',stored)
             FROM ${TABLE} 
             WHERE 
-                (status IS NULL
+                ((status IS NULL
                 AND credits IS NULL
                 AND amount IS NULL)
                 OR
-                status=-3
+                status=-3)
+                ${SEND_REGION:+ AND region='${SEND_REGION}'}
             ORDER BY 
                 stored ASC
             limit 1
         ")
+
         [ -z "${DATA}" ] && {
             echo Finished. Sent $SENT_CNT.
             exit 0
@@ -159,7 +176,6 @@ while [ $EXIT -eq 0 ] ; do
         REGION=${REGION:-kiev}
         echo "PH=$PH REGION=$REGION "
     fi
-
 
     REGION_DOMEN=$(echo $REGION | sed -e 's/^dnepr$/dp/' -e 's/^odessa$/od/' )
     echo "$REGION_DOMEN" | grep -qP "^($VALID_DOMENS)$"

@@ -8,22 +8,38 @@ use LWP::UserAgent;
 use HTTP::Request;
 use Digest::SHA1 qw/sha1/;
 use MIME::Base64 qw/encode_base64/;
-
+#use HTTP::BrowserDetect;
+use utf8;
 use strict;
 
 #my $title='Недвижимость из 1х рук/в 1е руки';
 
 sub index {
     my $self = shift;
+
+    my $string = $self->param('string');
+
     my $ip = $self->remote_addr;
+    #my $browser_info = HTTP::BrowserDetect->new( $self->req->headers->user_agent );
+
     #$self->info("Access Index. IP: $ip");
-    say $self->region, " IP: $ip";
+    #
+    $self->info(  'Index: '. $self->region. " IP: $ip; UA: ". 
+             $self->req->headers->user_agent. 
+             ( $string ? "; param $string" : '' ) );
+
+    if( $string ) {
+        $self->redirect_to( $self->url_for('detalize'). $string );
+    }
+
     my $js_data_structure = $self->render('index/fixtures/'.$self->region.'/data_structure',
                                         'mojo.to_string'=>1);
     my $start1 = $self->render('index/fixtures/'.$self->region.'/start1',
                                         'mojo.to_string'=>1);
     $self->render(js_data_structure=>$js_data_structure, 
                    meta_description=>undef,
+                    google_analytics_id=>
+                        $self->config->{$self->region}->{google_analytics_id},
                     start1=>$start1 );
 }
 
@@ -73,18 +89,22 @@ $sess_debug .= 'diff:         '. ($conf - $curr). " REST ". ($conf-$curr)/60 ."\
 $sess_debug .= 'is_prod: '. $self->is_prod. "\n";
 $sess_debug .= 'is_demo: '. $self->is_demo. "\n";
 }
-    my $report = $self->param('report');
+    my $report = $self->param('report') || '';
     my $home = $self->app->home;
     my $fixtures_path = $home.'/templates/';
     my $fixture       = 'index/fixtures/'.$self->region.'/data/';
     $fixture .= 'demo/' if $self->is_demo;
     $fixture .= 'prod/' if $self->is_prod;
     
-    $self->info ( 'Detalize: '.  $report );
+    my $ip = $self->remote_addr;
+
+    $self->info ( "Detalize: ". $self->region. " IP: $ip; Report: ".  $report );
+
     #$self->app->log->debug ( 'Home: '.  $home  );
     #$self->app->log->info ( 'fixtures: '.  $fixture  );
     #$self->info ( 'Detalize: '.  $fixtures_path.$fixture.$report.'.html.ep'  );
     unless ($report) {
+        $self->info ( "Detalize: ". $self->region. " IP: $ip; Report: NOT FOUND" );
         $self->redirect_to( "/" );
         return 1;
     }
@@ -103,31 +123,53 @@ $sess_debug .= 'is_demo: '. $self->is_demo. "\n";
 
         my $js_data_structure = $self->render('index/fixtures/'.$self->region.
                 '/data_structure', 'mojo.to_string'=>1);
- 
+
+        my $dates_file = $home.'/templates/index/fixtures/'.$self->region.'/dates.DATA';
+        my( $free_selected_until,
+            $next_update,
+            $permitted_days ) =
+                $self->dates_info($dates_file);
+
+        
         $self->render( av2data=>$av2data, 
+
+                        free_selected_until=>$free_selected_until,
+                        next_update=>$next_update,
+                        permitted_days=>$permitted_days,
+
                         meta_description=>$meta_description,
                         js_data_structure => $js_data_structure,
+                    google_analytics_id=>
+                        $self->config->{$self->region}->{google_analytics_id},
                         sess_debug=>$sess_debug );
 
     } else {
         $self->redirect_to( $self->url_for('index' ));
     }
-
 }
 
 sub payment_data {
     my $self = shift;
+
+    $self->app->log->debug ( "inside payment_data" );
+
     my $p = shift;
     my $order_id = $p->{order_id};
     my $test = $self->sandbox_payment;
+    #my $order_text = encode('utf8','Информационные услуги');
+    my $order_date = `date +'%d.%m.%y'`;
+    chomp $order_date;
+    #say $order_date;
+    my $order_text = "Информационные услуги. Счет:  ". $order_id . ' от '.$order_date;
+
+    #utf8::upgrade($order_text);
+    #my $order_text = 'Information service. Order: '.$order_id;
     my %data = (
          payment_form_action=>'https://www.liqpay.com/api/pay'
-        ,payment_public_key=>'i71804176847'
+        ,payment_public_key=>$self->config->{liqpay}->{public_key}
         ,payment_amount=>$self->amount,
         ,payment_currency=>'UAH'
-        #,payment_description=>encode('cp1251','Информационные услуги')
-        #,payment_description=>encode('utf8','Информационные услуги')
-        ,payment_description=>'Information Service'
+        ,payment_description=>$order_text
         ,payment_type=>'buy'
         ,payment_order_id=>$order_id
         ,payment_pay_way=>'card,delayed'
@@ -135,7 +177,7 @@ sub payment_data {
         ,payment_sandbox=>$test,
         ,payment_server_url=>$self->req->url->base.'/liqpay'
         ,payment_result_url=>$self->req->url->base.'/after_liqpay?'.$order_id
-        ,private_key=>'X4cne5QJAu5al2DoePx5KMCp0oOCy5bDUqtby4DJ'
+        ,private_key=>$self->config->{liqpay}->{private_key}
     );
     #,payment_signature=>'Vlad'
 
@@ -147,6 +189,9 @@ sub payment_data {
            payment_description payment_result_url payment_server_url /;
    
     delete $data{private_key};
+
+    $signature = encode('utf8',$signature);
+
     my $ready = encode_base64(sha1($signature));
     chop( $ready );
     $data{payment_signature} = $ready;
@@ -177,6 +222,9 @@ sub after_liqpay {
     my $self = shift;
     my @params = $self->param();
     my $order_id = $params[0];
+
+    ## DELAY
+    sleep 6;
     #$self->app->log->debug ( "after_liqpay params: ". join(',',@params ));
     foreach my $p ( @params ) {
         $self->info ( 'AfterLiqpay: '.$p. ': '.  $self->param($p) );
@@ -188,6 +236,7 @@ sub after_liqpay {
     $self->app->log->error("*** ORDERID $order_id. More than one record")  
                                                 if scalar @data >1;
     my $status     = $data[0]->[0];
+    $self->app->log->info("AfterLiqay: i got ".scalar @data. "status=$status");
     my $info       = $data[0]->[1];
     my $stamp      = $data[0]->[2];
     my $amount     = $data[0]->[3];
@@ -197,17 +246,18 @@ sub after_liqpay {
     my $pay_sheet = $self->session('p');
     $pay_sheet->{$unix_stamp} = {id=>$order_id,sum=>$amount};
 
+    $self->app->log->info('I here');
+
     my @dates = reverse sort keys %{ $pay_sheet };
     #say "DATES: \n".join "\n", @dates;
     for(my $i=$self->config->{how_many_dates_save}; $i<scalar @dates; $i++ ) {
         #say "DELETE: ". $dates[$i];
         delete $pay_sheet->{$dates[$i]};
     }
-    $self->session(p=>$pay_sheet); # date2
+    $self->session(p=>$pay_sheet) if $status eq 'success'; # date2
 
     $self->info("After liqpay: Order_id: $order_id, Status: $status, Info: $info");
-    $self->redirect_to($self->url_for('detalize').$info.'.html#'.$ad_id)
-;
+    $self->redirect_to($self->url_for('detalize').$info.'.html#'.$ad_id);
 }
 
 sub liqpay {
@@ -249,8 +299,8 @@ sub oauth2callback_to_del {
     $req->header('Content-Type' => 'application/x-www-form-urlencoded');
     my $content = sprintf("code=%s", $code)
       ."&grant_type=authorization_code"
-      ."&cliend_id=964397194725-pkanvp4cqf9ga2l6r6spcrqvenh7dpnl.apps.googleusercontent.com"
-      ."&cliend_secret=oRh6v8dBLrrZK6Hlmlf0d8tt"
+      ."&cliend_id=***********5-*******************************l.apps.googleusercontent.com"
+      ."&cliend_secret=o****8***************8*t"
       ."&redirect_uri=$redirect_uri";
     #$req->content(url_escape($content));
     $req->content($content);
@@ -277,8 +327,8 @@ sub oauth2callback {
         #} => 
         form => {
         code => $code
-        ,client_id=>'964397194725-pkanvp4cqf9ga2l6r6spcrqvenh7dpnl.apps.googleusercontent.com'
-        ,client_secret=>'oRh6v8dBLrrZK6Hlmlf0d8tt'
+        ,client_id=>$self->config->{google_oauth}->{client_id}
+        ,client_secret=>$self->config->{google_oauth}->{client_secret}
         ,redirect_uri=>'http://k116.asuscomm.com:3000/oauth2callback'
         ,grant_type=>'authorization_code'
     });
@@ -342,7 +392,7 @@ sub vklogin {
 
     #my $res=$self->app->ua->max_redirects(5)->get("https://oauth.vk.com/access_token&client_id=4650321&client_secret=rV845hoyvb6tqpgYsXqv&code=${code}")->res;
 
-    my $query = "https://oauth.vk.com?client_id=4650922&client_secret=UYDvNJtqIIMp4q599bHR&code=${code}&redirect_uri=http://k116.asuscomm.com:3000/vklogin"; 
+    my $query = "https://oauth.vk.com?client_id=".($self->config->{vk_oauth}->{client_id})."&client_secret=".($self->config->{vk_oauth}->{client_secret})."&code=${code}&redirect_uri=http://k116.asuscomm.com:3000/vklogin"; 
     $self->app->log->debug ( "code: ". $code );
     $self->app->log->debug ( "query: ". $query );
     my $res=$self->app->ua->get($query); #->res;
@@ -357,6 +407,7 @@ sub vklogin {
 
 sub human_phone {
     my $p = shift;
+    say 'Wey strange human_phone' unless $p;
     my @a = map {
         '(0'.substr($_,0,2).') '.substr($_,2,3).'-'.
                 substr($_,5,2).'-'.substr($_,7);
@@ -386,6 +437,8 @@ sub history {
         '-- limit 1 '
     );
 
+    #say Dumper $retro;
+
     my $first=1;
     my $phones_to_page;
     ## calculate dates array
@@ -409,8 +462,15 @@ sub history {
     }
 
     my $show_liqpay_button;
-    $show_liqpay_button = 1 if $self->is_demo and 
+    $show_liqpay_button = 1 if $self->is_demo and @ad_dates and
                       grep $ad_dates[0] eq $_, @bold_dates;
+
+    my $home = $self->app->home;
+    my $dates_file = $home.'/templates/index/fixtures/'.$self->region.'/dates.DATA';
+    my( $free_selected_until,
+        $next_update,
+        $permitted_days ) =
+                $self->dates_info($dates_file);
 
     my $history_data = $self->render('index/includes/retro',
             retro=>$retro, 
@@ -418,6 +478,11 @@ sub history {
             bold_dates=>[@bold_dates],
             phones_to_page=>human_phone($phones_to_page),
             show_liqpay_button=>$show_liqpay_button,
+
+            free_selected_until=>$free_selected_until,
+            next_update=>$next_update,
+            permitted_days=>$permitted_days,
+
             'mojo.to_string'=>1 ); 
     #$self->debug( "**** HData: ". $history_data );
     #$self->info("Dates: ". join ',', @ad_dates );

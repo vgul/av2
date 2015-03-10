@@ -74,14 +74,13 @@ sub startup {
     $self->helper( bold_dates      => sub { Helpers::bold_dates(@_) } );
     $self->helper( Region_cyr      => sub { Helpers::Region_cyr(@_) } );
     $self->helper( Region_cyr_short=> sub { Helpers::Region_cyr_short(@_) } );
-
+    $self->helper( dates_info      => sub { Helpers::dates_info(@_) } );
 
     #$self->app->log->debug ( "*** Start");
 
     my $r = $self->routes;
     #my $example = $r->route('/example')->to('example#')->name('EX');
 # here
-    $r->get('/')->to('index#index')->name('index');
     #$r->any([qw/GET/]=>'/a/(:report)')->to('index#detalize')->name('detalize');
     $r->get('/a/:report',{report=>undef})->to('index#detalize')->name('detalize');
     #$r->get('/a')->to('index#up_detalize')->name('up_detalize');
@@ -97,11 +96,18 @@ sub startup {
     $r->get('/sitemap.xml')->to('index#sitemap_xml');
     $r->get('/sitemap')->to('index#sitemap');
     $r->get('/robots.txt')->to('index#robots');
+
+    $r->get('/after_liqpay')->to('index#after_liqpay')->name('after_liqpay'); 
+
+    # test
+    #$r->get('/tesT')->to('test#test')->name('test');
+
+    $r->get('/:string',{string=>undef})->to('index#index')->name('index');
+
     #$r->get('/lp1')->to('index#lp1')->name('lp1'); ## ??
 
     ## redirect с формы API url магазина кл-сер
     ## первоочередной
-    $r->get('/after_liqpay')->to('index#after_liqpay')->name('after_liqpay'); 
 
 }
 

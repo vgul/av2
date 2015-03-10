@@ -2,6 +2,7 @@ package Helpers;
 use v5.10;
 use Data::Dumper;
 use Encode;
+use strict;
 
 sub index_subtext {
     my $self = shift;
@@ -93,5 +94,83 @@ sub conf_prod_age {
 #    $self->debug( Dumper $self->session('p') );
 #}
 
+sub dates_info {
+    my $self = shift;
+    my $dates_file = shift;
+
+    #my @info_dates; 
+    open DATES, $dates_file or die "dates file: $dates_file";
+    my @info_dates = map { chop; $_ } <DATES>;
+    close DATES;
+
+    #say "BD: ", $self->bold_dates, ':', Dumper \@info_dates;
+
+    my $free_selected_until = join '.', reverse split /-/, $info_dates[$self->bold_dates - 1];
+
+    my $next_update = next_update( \@info_dates );
+
+    if( $next_update == 1 ) {
+        $next_update = '1 день';
+    } elsif( grep $next_update == $_, qw/2 3 4/ ) {
+        $next_update = $next_update.' дня';
+    } else {
+        $next_update = $next_update.' дней';
+    }
+
+    my $permitted_days = int($self->config->{$self->region}->{prod_age}/
+            (60*60*24));
+
+    if( $permitted_days == 1 ) {
+        $permitted_days = '1 дня';
+    } else {
+        $permitted_days = $permitted_days.' дней';
+    }
+
+
+
+    #    my( $free_selected_until,
+    #        $next_update,
+    #        $permitted_days ) =
+    return 
+           $free_selected_until,
+           decode('utf8',$next_update),
+           decode('utf8',$permitted_days);
+ 
+}
+
+sub next_update {
+    my $data = shift;
+
+    #say Dumper \@a;
+
+    my %statistics;
+    foreach my $d (@$data ) {
+        my $week = `date -d "$d" +%u`;
+        chomp $week;
+        #say "$d : $week";
+        $statistics{$week} =1;
+    }
+    #say Dumper \%statistics;
+    #
+    my $today = `date +'%F %u'`;
+    chomp $today;
+
+    my $next_date;
+    my $shift;
+    for( my $i=0; $i<10; $i++ ) {
+        my $d = `date -d '$i day' +'%F %u'`;
+        chomp $d;
+        next if $today eq $d;
+        #say $d;
+        my( $date, $week ) = split /\s+/, $d;
+        if( exists $statistics{$week} ) {
+            $next_date = $date;
+            $shift = $i-0;
+            last;
+        }
+    }
+    return $shift;
+    #say "I:$shift";
+}
 1;
 

@@ -37,7 +37,32 @@ my $dbname_target = "aviso2";
 my $host_target = 'localhost';
 
 ## how many dates bold;
+### SEE /opt/prod/sites/av2/m/av.conf (bold_dates)
+
+
 my %_bold_dates = ( kiev=>2, dnepr=>1, odessa=>1 );
+
+my $config = DetectConfData::get_config_data( $my_absolute_path );
+
+say "Bold dates:";
+for my $region ( keys %_bold_dates ) {
+    my $default_value = $_bold_dates{$region};
+    my $config_value  = $config->{$region}->{bold_dates};
+
+    print "\t$region:\tdefault: ", $_bold_dates{$region},
+                "\tconfig: ", $config_value, ' ';
+    if( $default_value eq $config_value ) {
+        say 'Ok' 
+    } else {
+        $_bold_dates{$region} = $config_value;
+        say 'need to update. Done';
+    }
+
+}
+
+#say Dumper \%_bold_dates;
+#exit 0;
+
 my $bold_dates = $_bold_dates{$region};
 say 'Bold dates: ', $bold_dates;
 die "Not 1 or 2 for bold dates" if $bold_dates !=1 and $bold_dates !=2 ;
@@ -89,6 +114,9 @@ write_sitemap_xml( \@names_of_html_reports );
 @dates = reverse sort @dates;
 my @bold_dates = @dates[0..$bold_dates-1];
 say 'bold_dates: ', Dumper \@bold_dates;
+#say Dumper \@dates;
+write_dates_info( @dates );
+#exit 0;
 write_files( $hash );
 
 
@@ -97,6 +125,17 @@ exit 0;
 
 ##########################################
 ##########################################
+sub write_dates_info {
+    my @dates = @_;
+    my $dates_path = $my_absolute_path.'/../m/templates/index/fixtures/'.
+        $region.'/dates.DATA';
+
+    open DATES, ">$dates_path";
+        say DATES join "\n", @dates;
+    close DATES;
+    
+}
+
 sub calculate_ads_num {
     my $h = shift;
     return $dbh_target->selectall_arrayref(
@@ -122,7 +161,17 @@ sub write_fixture {
     #print $meta;
     close DESC;
 
-    
+    my $keys_path = $my_absolute_path.'/../m/templates/index/fixtures/'.
+                    $region.'/data/keywords/';
+    mkpath( $keys_path );
+    my $keys_full = ${keys_path}.$uniq.'.html.ep';
+
+    open KEYS, ">$keys_full";
+    foreach my $d ( @{ $p->{inner}->{single} } ) {
+        say KEYS $d->{h};
+    }
+    close KEYS;
+
     my $h = $dbh_target->selectall_hashref( 'SELECT'.
             ' -- *, '. "\n".
             ' ad_id_start,'. "\n".
@@ -268,7 +317,7 @@ sub write_fixture {
 
 
         say ADS '<p align="right">',
-                'Информация собирается из интернета и анализируется на предмет 1х рук автоматически, поэтому возможен незначительный процент неточностей.',
+                'Информация собирается из интернета и анализируется на предмет \'посредник-непосредник\'  автоматически, поэтому возможен незначительный процент неточностей.',
                 '</p>';
         close ADS0;
     }
@@ -439,7 +488,6 @@ sub write_sitemap_xml {
     }
     say XML '</urlset>';
     close XML;
-    #my $sitemapfile='../m/templates/index/fixtures/'.$region.'/data/'.$demo_prod;
 }
 
 sub calculate_ad_depth {
@@ -474,3 +522,31 @@ sub bold_date {
     return $p{human};
 }
 
+package DetectConfData;
+use Mojolicious;
+use Mojolicious::Plugin::Config;
+use Data::Dumper;
+use strict;
+
+use constant AV_CONF_NAME => 'av.conf';
+use constant AV_APP_PATH  => '../m/';
+
+sub get_config_data {
+
+    my $curr_path = shift;
+    my $app_path = $curr_path . '/'. AV_APP_PATH;
+
+    #say "APP_PATH (inside get_config_data func):", $app_path; 
+
+    $ENV{MOJO_HOME} = $app_path; 
+    my $plugin = Mojolicious::Plugin::Config->new;
+    my $mojo = Mojolicious->new();
+#
+#    my $full_init_config_path;
+#    say "PTA: $path_to_app";
+#
+    my $config = $plugin->register($mojo, {file => $app_path . AV_CONF_NAME });
+    return $config;
+}
+
+1;

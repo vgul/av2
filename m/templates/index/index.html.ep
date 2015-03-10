@@ -87,6 +87,8 @@
 
     </script>
 
+%= include 'index/includes/google_analytics';
+
 </head>
 <body>
 

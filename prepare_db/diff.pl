@@ -57,7 +57,10 @@ my @a = (
 my %long = ();
 for( my $i=1; $i < scalar @a; $i++ ) {
     #say $a[$i];
-    my $diff = String::Diff::diff_fully( decode('utf8',$a[0]), decode('utf8',$a[$i]) );
+    my $a0 = encode('utf8', $a[0]);
+    my $ai = encode('utf8', $a[$i]);
+
+    my $diff = String::Diff::diff_fully( decode('utf8',$a0), decode('utf8',$a[$i]) );
 
     say encode('utf8',$diff->[0]->[0]->[1]);
     $long{$diff->[0]->[0]->[1]} = 1;
@@ -81,7 +84,6 @@ next;
     # u: 'this is '
     # +: 'Ruby'
 }
-
 
 say p %long;
 exit 0;

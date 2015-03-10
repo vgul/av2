@@ -1,0 +1,4 @@
+
+                <h6 class="modal-title" style="text-align: center; center; padding: 10px 10px;">
+                Вам на протяжении <b><%= $permitted_days %></b> станут доступны контакты всех объявлений (включая это) из всех разделов.
+                </h6>

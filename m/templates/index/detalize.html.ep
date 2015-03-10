@@ -110,7 +110,12 @@
             // console.log( str0 );
             jQuery("#select1-show").html(str0);
         }
-    };
+    }; 
+
+    function sleep(ms) {
+        ms += new Date().getTime();
+        while (new Date() < ms){}
+    } 
 
     $(function () {
         jQuery('#'+find_depart).click( function(obj) {show_menu(obj)});
@@ -191,7 +196,8 @@ function() {
             });
 
 % if( $self->is_demo ) {
-            console.log('history pay clicked');
+            sleep(800);
+            // console.log('history pay clicked');
             // generate liqpay button
             if( $(this).is("[data-bold]") ) {
                 jQuery.ajax({
@@ -200,7 +206,7 @@ function() {
                     url: "<%== url_for 'get_liqpay_button' %>?info="+selected_region+
                             '&ad_id_start=' + ad_id_start
                 }).done(function( response ) {
-                    // console.log('ajax: ' + response );
+                    // console.log('ajax: received'); // + response );
                     $('#liqpay_button_in_history').html( response );
                 });
             } else {
@@ -211,6 +217,8 @@ function() {
         });
     });
     </script>
+
+%= include 'index/includes/google_analytics';
 
     </head>
 

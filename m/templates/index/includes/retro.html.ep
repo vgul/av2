@@ -80,12 +80,17 @@
 
 <div class="alert alert-success" role="alert" style="margin-bottom: 5px;">
 
-<div id="liqpay_button_in_history">
-</div> 
+%= include 'index/includes/text_before_liqpay_button' ,free_selected_until=>$free_selected_until ,next_update=>$next_update
 
-      <h4 class="modal-title" style="text-align: center;">
+    <div id="liqpay_button_in_history">
+    </div> 
+
+    <h4 class="modal-title" style="text-align: center;">
 <b><%= $self->amount %></b> грн за доступ ко <b>Всем</b> контактам во <b>Всех</b> разделах.
-      </h4>
+    </h4>
+    <h6 class="modal-title" style="text-align: center;">
+    Вам на протяжении <b><%= $permitted_days %> дней</b> станут доступны контакты всех объявлений (включая это) из всех разделов.
+    </h6>
 </div>
 </div>
 </div>

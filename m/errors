@@ -1,0 +1,17 @@
+
+
+Initial configartion parsing. Found: /opt/prod/sites/av2/m/local.conf
+Server available at http://127.0.0.1:4000.
+Wey strange human_phone
+Use of uninitialized value $p in split at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 407.
+Wey strange human_phone
+Use of uninitialized value $p in split at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 407.
+Use of uninitialized value $status in string eq at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 252.
+Use of uninitialized value $status in concatenation (.) or string at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 254.
+Wey strange human_phone
+Use of uninitialized value $p in split at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 407.
+Wey strange human_phone
+Use of uninitialized value $p in split at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 407.
+Use of uninitialized value $meta_description in scalar chomp at /opt/prod/sites/av2/m/script/../lib/Av/Index.pm line 118.
+
+

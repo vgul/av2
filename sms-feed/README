@@ -1,0 +1,22 @@
+
+SITES:
+    http://www.epochta.ua/
+    http://my.atompark.com/sms/billing/
+API:
+    http://my.atompark.com/sms/api/
+
+TEST or NOT TEST mode:
+    http://my.atompark.com/settings/
+
+Carriage return:
+    &#10;
+
+Senders name:
+    http://my.atompark.com/sms/senders
+
+
+Prepare sms:
+    bash ./phones-thread.sh kiev --table0 --nhier 6 | head -55    | bash ./store-phone-to-send.sh
+
+Send sms:
+    bash ./sms-sender.sh --do --count 2
